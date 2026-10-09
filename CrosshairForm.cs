@@ -1,11 +1,17 @@
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Celowniczek
 {
+    public enum CrosshairStyle
+    {
+        Cross,
+        DotOnly,
+        Circle
+    }
+
     public class CrosshairForm : Form
     {
         [DllImport("user32.dll", SetLastError = true)]
@@ -14,22 +20,11 @@ namespace Celowniczek
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
-        [DllImport("user32.dll")]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-
         private const int GWL_EXSTYLE = -20;
-        private const int WS_EX_TRANSPARENT = 0x20;
-        private const int WS_EX_LAYERED = 0x80000;
-        private const int WS_EX_TOOLWINDOW = 0x80;
+        private const int WS_EX_TRANSPARENT = 0x00000020;
+        private const int WS_EX_TOOLWINDOW = 0x00000080;
+        private const int WS_EX_TOPMOST = 0x00000008;
 
-        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        private const uint SWP_NOMOVE = 0x0001;
-        private const uint SWP_NOSIZE = 0x0002;
-        private const uint SWP_SHOWWINDOW = 0x0040;
-
-        public enum CrosshairStyle { Dot, Cross, Circle, CrossAndDot }
-
-        public CrosshairStyle Style { get; set; } = CrosshairStyle.CrossAndDot;
         public Color CrosshairColor { get; set; } = Color.Cyan;
         public Color OutlineColor { get; set; } = Color.Black;
         public bool EnableOutline { get; set; } = true;
@@ -37,17 +32,18 @@ namespace Celowniczek
         public int Thickness { get; set; } = 2;
         public int Gap { get; set; } = 4;
         public int DotRadius { get; set; } = 2;
+        public CrosshairStyle Style { get; set; } = CrosshairStyle.Cross;
 
         public CrosshairForm()
         {
             this.FormBorderStyle = FormBorderStyle.None;
             this.ShowInTaskbar = false;
-            this.StartPosition = FormStartPosition.Manual;
             this.TopMost = true;
+            this.StartPosition = FormStartPosition.Manual;
+
             this.BackColor = Color.Magenta;
             this.TransparencyKey = Color.Magenta;
-
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            this.DoubleBuffered = true;
 
             UpdateBoundsToCenter();
         }
@@ -55,26 +51,25 @@ namespace Celowniczek
         public void UpdateBoundsToCenter()
         {
             Rectangle screen = Screen.PrimaryScreen?.Bounds ?? Screen.AllScreens[0].Bounds;
-            
-            // Wymiar okna musi być parzysty, aby środek wypadał idealnie na przecieciu pikseli
-            int boxSize = Math.Max(SizePx * 4, 120);
-            if (boxSize % 2 != 0) boxSize++;
-
-            int x = screen.Left + (screen.Width - boxSize) / 2;
-            int y = screen.Top + (screen.Height - boxSize) / 2;
-
-            this.Bounds = new Rectangle(x, y, boxSize, boxSize);
-            this.Invalidate();
+            this.Size = new Size(screen.Width, screen.Height);
+            this.Location = new Point(0, 0);
         }
 
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-
             int initialStyle = GetWindowLong(this.Handle, GWL_EXSTYLE);
-            SetWindowLong(this.Handle, GWL_EXSTYLE, initialStyle | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+            SetWindowLong(this.Handle, GWL_EXSTYLE, initialStyle | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_TOPMOST);
+        }
 
-            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_TOPMOST;
+                return cp;
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -82,62 +77,58 @@ namespace Celowniczek
             base.OnPaint(e);
 
             Graphics g = e.Graphics;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
 
-            // Wymuszenie precyzyjnego pozycjonowania linii
-            g.PixelOffsetMode = PixelOffsetMode.Half;
+            int centerX = this.Width / 2;
+            int centerY = this.Height / 2;
 
-            float centerX = this.Width / 2.0f;
-            float centerY = this.Height / 2.0f;
-
-            using (Pen mainPen = new Pen(CrosshairColor, Thickness))
-            using (Pen outlinePen = new Pen(OutlineColor, Thickness + 2))
-            using (SolidBrush mainBrush = new SolidBrush(CrosshairColor))
-            using (SolidBrush outlineBrush = new SolidBrush(OutlineColor))
+            if (Style == CrosshairStyle.Cross)
             {
-                mainPen.StartCap = LineCap.Flat;
-                mainPen.EndCap = LineCap.Flat;
-                outlinePen.StartCap = LineCap.Flat;
-                outlinePen.EndCap = LineCap.Flat;
-
-                // Kropka
-                if (Style == CrosshairStyle.Dot || Style == CrosshairStyle.CrossAndDot)
+                // Rysowanie obrysu (czarna krawędź)
+                if (EnableOutline)
                 {
-                    if (EnableOutline)
-                    {
-                        g.FillEllipse(outlineBrush, centerX - DotRadius - 1, centerY - DotRadius - 1, (DotRadius + 1) * 2, (DotRadius + 1) * 2);
-                    }
-                    g.FillEllipse(mainBrush, centerX - DotRadius, centerY - DotRadius, DotRadius * 2, DotRadius * 2);
-                }
-
-                // Krzyżyk
-                if (Style == CrosshairStyle.Cross || Style == CrosshairStyle.CrossAndDot)
-                {
-                    if (EnableOutline)
+                    using (Pen outlinePen = new Pen(OutlineColor, Thickness + 2))
                     {
                         g.DrawLine(outlinePen, centerX, centerY - Gap - SizePx, centerX, centerY - Gap);
                         g.DrawLine(outlinePen, centerX, centerY + Gap, centerX, centerY + Gap + SizePx);
                         g.DrawLine(outlinePen, centerX - Gap - SizePx, centerY, centerX - Gap, centerY);
                         g.DrawLine(outlinePen, centerX + Gap, centerY, centerX + Gap + SizePx, centerY);
                     }
-
-                    g.DrawLine(mainPen, centerX, centerY - Gap - SizePx, centerX, centerY - Gap);
-                    g.DrawLine(mainPen, centerX, centerY + Gap, centerX, centerY + Gap + SizePx);
-                    g.DrawLine(mainPen, centerX - Gap - SizePx, centerY, centerX - Gap, centerY);
-                    g.DrawLine(mainPen, centerX + Gap, centerY, centerX + Gap + SizePx, centerY);
                 }
 
-                // Okrąg
-                if (Style == CrosshairStyle.Circle)
+                // Główne linie celownika
+                using (Pen pen = new Pen(CrosshairColor, Thickness))
                 {
-                    float radius = SizePx;
-                    if (EnableOutline)
-                    {
-                        g.DrawEllipse(outlinePen, centerX - radius, centerY - radius, radius * 2, radius * 2);
-                    }
-                    g.DrawEllipse(mainPen, centerX - radius, centerY - radius, radius * 2, radius * 2);
+                    g.DrawLine(pen, centerX, centerY - Gap - SizePx, centerX, centerY - Gap);
+                    g.DrawLine(pen, centerX, centerY + Gap, centerX, centerY + Gap + SizePx);
+                    g.DrawLine(pen, centerX - Gap - SizePx, centerY, centerX - Gap, centerY);
+                    g.DrawLine(pen, centerX + Gap, centerY, centerX + Gap + SizePx, centerY);
                 }
             }
+
+            // Kropka w środku
+            if (DotRadius > 0 || Style == CrosshairStyle.DotOnly)
+            {
+                int r = DotRadius > 0 ? DotRadius : 2;
+
+                if (EnableOutline)
+                {
+                    using (SolidBrush outlineBrush = new SolidBrush(OutlineColor))
+                    {
+                        g.FillRectangle(outlineBrush, centerX - r - 1, centerY - r - 1, (r * 2) + 2, (r * 2) + 2);
+                    }
+                }
+
+                using (SolidBrush brush = new SolidBrush(CrosshairColor))
+                {
+                    g.FillRectangle(brush, centerX - r, centerY - r, r * 2, r * 2);
+                }
+            }
+        }
+
+        public void Redraw()
+        {
+            this.Invalidate();
         }
     }
 }

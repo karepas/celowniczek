@@ -6,157 +6,106 @@ namespace Celowniczek
 {
     public class SettingsForm : Form
     {
-        private CrosshairForm _crosshair;
+        private readonly ConfigData config;
+        private readonly CrosshairForm crosshairForm;
 
-        private ComboBox _comboStyle = null!;
-        private Button _btnColor = null!;
-        private Button _btnOutlineColor = null!;
-        private CheckBox _chkOutline = null!;
-        private NumericUpDown _numSize = null!;
-        private NumericUpDown _numThickness = null!;
-        private NumericUpDown _numGap = null!;
-        private NumericUpDown _numDotRadius = null!;
+        private Button btnColor = null!;
+        private TrackBar tbSize = null!;
+        private TrackBar tbThickness = null!;
+        private TrackBar tbGap = null!;
+        private TrackBar tbDotRadius = null!;
+        private CheckBox cbOutline = null!;
+        private Label lblSize = null!;
+        private Label lblThickness = null!;
+        private Label lblGap = null!;
+        private Label lblDotRadius = null!;
 
-        public SettingsForm(CrosshairForm crosshair)
+        public SettingsForm(ConfigData config, CrosshairForm crosshairForm)
         {
-            _crosshair = crosshair;
-            this.Icon = IconGenerator.CreateCrosshairIcon();
-            InitializeComponent();
-        }
+            this.config = config;
+            this.crosshairForm = crosshairForm;
 
-        private void InitializeComponent()
-        {
             this.Text = "Celowniczek - Ustawienia";
-            this.Size = new Size(350, 360);
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.Size = new Size(320, 420);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            int top = 20;
-
-            Label lblStyle = new Label() { Text = "Styl:", Left = 20, Top = top, Width = 100 };
-            _comboStyle = new ComboBox() { Left = 130, Top = top - 3, Width = 170, DropDownStyle = ComboBoxStyle.DropDownList };
-            _comboStyle.Items.AddRange(Enum.GetNames(typeof(CrosshairForm.CrosshairStyle)));
-            _comboStyle.SelectedItem = _crosshair.Style.ToString();
-            _comboStyle.SelectedIndexChanged += (s, e) =>
-            {
-                if (_comboStyle.SelectedItem != null && Enum.TryParse(_comboStyle.SelectedItem.ToString(), out CrosshairForm.CrosshairStyle newStyle))
-                {
-                    _crosshair.Style = newStyle;
-                    _crosshair.Invalidate();
-                    ConfigManager.SaveConfig(_crosshair);
-                }
-            };
-            this.Controls.Add(lblStyle);
-            this.Controls.Add(_comboStyle);
-
-            top += 35;
-            Label lblColor = new Label() { Text = "Kolor:", Left = 20, Top = top, Width = 100 };
-            _btnColor = new Button() { Left = 130, Top = top - 3, Width = 170, BackColor = _crosshair.CrosshairColor, Text = "Wybierz kolor" };
-            _btnColor.Click += (s, e) =>
-            {
-                using (ColorDialog cd = new ColorDialog())
-                {
-                    cd.Color = _crosshair.CrosshairColor;
-                    if (cd.ShowDialog() == DialogResult.OK)
-                    {
-                        _crosshair.CrosshairColor = cd.Color;
-                        _btnColor.BackColor = cd.Color;
-                        _crosshair.Invalidate();
-                        ConfigManager.SaveConfig(_crosshair);
-                    }
-                }
-            };
-            this.Controls.Add(lblColor);
-            this.Controls.Add(_btnColor);
-
-            top += 35;
-            _chkOutline = new CheckBox() { Text = "Włącz obrys", Left = 20, Top = top, Checked = _crosshair.EnableOutline };
-            _chkOutline.CheckedChanged += (s, e) =>
-            {
-                _crosshair.EnableOutline = _chkOutline.Checked;
-                _crosshair.Invalidate();
-                ConfigManager.SaveConfig(_crosshair);
-            };
-            this.Controls.Add(_chkOutline);
-
-            top += 30;
-            Label lblOutlineColor = new Label() { Text = "Kolor obrysu:", Left = 20, Top = top, Width = 100 };
-            _btnOutlineColor = new Button() { Left = 130, Top = top - 3, Width = 170, BackColor = _crosshair.OutlineColor, Text = "Wybierz obrys" };
-            _btnOutlineColor.Click += (s, e) =>
-            {
-                using (ColorDialog cd = new ColorDialog())
-                {
-                    cd.Color = _crosshair.OutlineColor;
-                    if (cd.ShowDialog() == DialogResult.OK)
-                    {
-                        _crosshair.OutlineColor = cd.Color;
-                        _btnOutlineColor.BackColor = cd.Color;
-                        _crosshair.Invalidate();
-                        ConfigManager.SaveConfig(_crosshair);
-                    }
-                }
-            };
-            this.Controls.Add(lblOutlineColor);
-            this.Controls.Add(_btnOutlineColor);
-
-            top += 35;
-            Label lblSize = new Label() { Text = "Rozmiar:", Left = 20, Top = top, Width = 100 };
-            _numSize = new NumericUpDown() { Left = 130, Top = top - 3, Width = 170, Minimum = 2, Maximum = 100, Value = _crosshair.SizePx };
-            _numSize.ValueChanged += (s, e) =>
-            {
-                _crosshair.SizePx = (int)_numSize.Value;
-                _crosshair.UpdateBoundsToCenter();
-                ConfigManager.SaveConfig(_crosshair);
-            };
-            this.Controls.Add(lblSize);
-            this.Controls.Add(_numSize);
-
-            top += 30;
-            Label lblThickness = new Label() { Text = "Grubość:", Left = 20, Top = top, Width = 100 };
-            _numThickness = new NumericUpDown() { Left = 130, Top = top - 3, Width = 170, Minimum = 1, Maximum = 20, Value = _crosshair.Thickness };
-            _numThickness.ValueChanged += (s, e) =>
-            {
-                _crosshair.Thickness = (int)_numThickness.Value;
-                _crosshair.Invalidate();
-                ConfigManager.SaveConfig(_crosshair);
-            };
-            this.Controls.Add(lblThickness);
-            this.Controls.Add(_numThickness);
-
-            top += 30;
-            Label lblGap = new Label() { Text = "Przerwa (Gap):", Left = 20, Top = top, Width = 100 };
-            _numGap = new NumericUpDown() { Left = 130, Top = top - 3, Width = 170, Minimum = 0, Maximum = 50, Value = _crosshair.Gap };
-            _numGap.ValueChanged += (s, e) =>
-            {
-                _crosshair.Gap = (int)_numGap.Value;
-                _crosshair.Invalidate();
-                ConfigManager.SaveConfig(_crosshair);
-            };
-            this.Controls.Add(lblGap);
-            this.Controls.Add(_numGap);
-
-            top += 30;
-            Label lblDotRadius = new Label() { Text = "Kropka środek:", Left = 20, Top = top, Width = 100 };
-            _numDotRadius = new NumericUpDown() { Left = 130, Top = top - 3, Width = 170, Minimum = 1, Maximum = 20, Value = _crosshair.DotRadius };
-            _numDotRadius.ValueChanged += (s, e) =>
-            {
-                _crosshair.DotRadius = (int)_numDotRadius.Value;
-                _crosshair.Invalidate();
-                ConfigManager.SaveConfig(_crosshair);
-            };
-            this.Controls.Add(lblDotRadius);
-            this.Controls.Add(_numDotRadius);
+            InitializeComponents();
         }
 
-        protected override void OnFormClosing(FormClosingEventArgs e)
+        private void InitializeComponents()
         {
-            if (e.CloseReason == CloseReason.UserClosing)
+            btnColor = new Button { Text = "Zmień kolor celownika", Location = new Point(20, 15), Size = new Size(260, 35) };
+            btnColor.Click += BtnColor_Click;
+
+            cbOutline = new CheckBox { Text = "Włącz czarny obrys (Outline)", Checked = config.EnableOutline, Location = new Point(20, 60), AutoSize = true };
+            cbOutline.CheckedChanged += (s, e) => {
+                config.EnableOutline = cbOutline.Checked;
+                ApplySettings();
+            };
+
+            lblSize = new Label { Text = $"Rozmiar: {config.Size}", Location = new Point(20, 95), AutoSize = true };
+            tbSize = new TrackBar { Minimum = 2, Maximum = 50, Value = config.Size, Location = new Point(20, 115), Size = new Size(260, 45) };
+            tbSize.ValueChanged += (s, e) => {
+                config.Size = tbSize.Value;
+                lblSize.Text = $"Rozmiar: {config.Size}";
+                ApplySettings();
+            };
+
+            lblThickness = new Label { Text = $"Grubość: {config.Thickness}", Location = new Point(20, 160), AutoSize = true };
+            tbThickness = new TrackBar { Minimum = 1, Maximum = 10, Value = config.Thickness, Location = new Point(20, 180), Size = new Size(260, 45) };
+            tbThickness.ValueChanged += (s, e) => {
+                config.Thickness = tbThickness.Value;
+                lblThickness.Text = $"Grubość: {config.Thickness}";
+                ApplySettings();
+            };
+
+            lblGap = new Label { Text = $"Przerwa (Gap): {config.Gap}", Location = new Point(20, 225), AutoSize = true };
+            tbGap = new TrackBar { Minimum = 0, Maximum = 30, Value = config.Gap, Location = new Point(20, 245), Size = new Size(260, 45) };
+            tbGap.ValueChanged += (s, e) => {
+                config.Gap = tbGap.Value;
+                lblGap.Text = $"Przerwa (Gap): {config.Gap}";
+                ApplySettings();
+            };
+
+            lblDotRadius = new Label { Text = $"Rozmiar kropki (0 = brak): {config.DotRadius}", Location = new Point(20, 290), AutoSize = true };
+            tbDotRadius = new TrackBar { Minimum = 0, Maximum = 10, Value = config.DotRadius, Location = new Point(20, 310), Size = new Size(260, 45) };
+            tbDotRadius.ValueChanged += (s, e) => {
+                config.DotRadius = tbDotRadius.Value;
+                lblDotRadius.Text = $"Rozmiar kropki (0 = brak): {config.DotRadius}";
+                ApplySettings();
+            };
+
+            this.Controls.Add(btnColor);
+            this.Controls.Add(cbOutline);
+            this.Controls.Add(lblSize);
+            this.Controls.Add(tbSize);
+            this.Controls.Add(lblThickness);
+            this.Controls.Add(tbThickness);
+            this.Controls.Add(lblGap);
+            this.Controls.Add(tbGap);
+            this.Controls.Add(lblDotRadius);
+            this.Controls.Add(tbDotRadius);
+        }
+
+        private void BtnColor_Click(object? sender, EventArgs e)
+        {
+            using (ColorDialog cd = new ColorDialog())
             {
-                e.Cancel = true;
-                this.Hide();
+                cd.Color = ColorTranslator.FromHtml(config.ColorHex);
+                if (cd.ShowDialog() == DialogResult.OK)
+                {
+                    config.ColorHex = ColorTranslator.ToHtml(cd.Color);
+                    ApplySettings();
+                }
             }
-            base.OnFormClosing(e);
+        }
+
+        private void ApplySettings()
+        {
+            ConfigManager.ApplyToForm(config, crosshairForm);
+            ConfigManager.SaveConfig(config);
         }
     }
 }

@@ -1,83 +1,54 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Celowniczek
 {
     internal static class Program
     {
-        private static NotifyIcon _notifyIcon = null!;
-        private static CrosshairForm _crosshairForm = null!;
-        private static SettingsForm _settingsForm = null!;
-
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            ApplicationConfiguration.Initialize();
 
-            _crosshairForm = new CrosshairForm();
+            ConfigData config = ConfigManager.LoadConfig();
+            CrosshairForm crosshair = new CrosshairForm();
+            ConfigManager.ApplyToForm(config, crosshair);
+
+            _ = UpdateChecker.CheckForUpdatesAsync(silent: true);
+
+            NotifyIcon trayIcon = new NotifyIcon();
+            trayIcon.Icon = SystemIcons.Application;
+            trayIcon.Text = "Celowniczek";
+            trayIcon.Visible = true;
+
+            ContextMenuStrip menu = new ContextMenuStrip();
             
-            ConfigManager.LoadConfig(_crosshairForm);
-
-            _crosshairForm.Show();
-
-            _settingsForm = new SettingsForm(_crosshairForm);
-
-            ContextMenuStrip trayMenu = new ContextMenuStrip();
-            
-            ToolStripMenuItem toggleItem = new ToolStripMenuItem("Pokaż / Ukryj Celownik");
-            toggleItem.Click += (s, e) =>
-            {
-                if (_crosshairForm.Visible)
-                    _crosshairForm.Hide();
-                else
-                    _crosshairForm.Show();
+            ToolStripMenuItem itemSettings = new ToolStripMenuItem("Ustawienia");
+            itemSettings.Click += (s, e) => {
+                SettingsForm settings = new SettingsForm(config, crosshair);
+                settings.ShowDialog();
             };
 
-            ToolStripMenuItem settingsItem = new ToolStripMenuItem("Ustawienia Celownika");
-            settingsItem.Click += (s, e) =>
-            {
-                _settingsForm.Show();
-                _settingsForm.BringToFront();
-            };
-
-            // Dodajemy przycisk ręcznego sprawdzania aktualizacji w Tray Menu
-            ToolStripMenuItem updateItem = new ToolStripMenuItem("Sprawdź aktualizacje");
-            updateItem.Click += async (s, e) =>
-            {
+            ToolStripMenuItem itemUpdate = new ToolStripMenuItem("Sprawdź aktualizacje");
+            itemUpdate.Click += async (s, e) => {
                 await UpdateChecker.CheckForUpdatesAsync(silent: false);
             };
 
-            ToolStripMenuItem exitItem = new ToolStripMenuItem("Wyjście");
-            exitItem.Click += (s, e) =>
-            {
-                _notifyIcon.Visible = false;
+            ToolStripMenuItem itemExit = new ToolStripMenuItem("Wyjście");
+            itemExit.Click += (s, e) => {
+                trayIcon.Visible = false;
                 Application.Exit();
             };
 
-            trayMenu.Items.Add(settingsItem);
-            trayMenu.Items.Add(toggleItem);
-            trayMenu.Items.Add(updateItem);
-            trayMenu.Items.Add(new ToolStripSeparator());
-            trayMenu.Items.Add(exitItem);
+            menu.Items.Add(itemSettings);
+            menu.Items.Add(itemUpdate);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(itemExit);
 
-            _notifyIcon = new NotifyIcon()
-            {
-                Icon = IconGenerator.CreateCrosshairIcon(),
-                ContextMenuStrip = trayMenu,
-                Text = "Celowniczek",
-                Visible = true
-            };
+            trayIcon.ContextMenuStrip = menu;
 
-            _notifyIcon.DoubleClick += (s, e) =>
-            {
-                _settingsForm.Show();
-                _settingsForm.BringToFront();
-            };
-
-            // Automatyczne sprawdzanie w tle po uruchomieniu aplikacji (ciche, bez komunikatów o braku aktualizacji)
-            _ = UpdateChecker.CheckForUpdatesAsync(silent: true);
-
+            crosshair.Show();
             Application.Run();
         }
     }
