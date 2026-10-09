@@ -1,0 +1,25 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Celowniczek" Manufacturer="Twój Nick" Version="1.0.0.0" UpgradeCode="a2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e">
+    <MajorUpgrade DowngradeErrorMessage="Nowsza wersja Celowniczka jest już zainstalowana." />
+    
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Celowniczek" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable">
+        <File Source="bin\Release\net8.0-windows\win-x64\publish\Celowniczek.exe" Id="CelowniczekExe" KeyPath="yes">
+          <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="Celowniczek" WorkingDirectory="INSTALLFOLDER" Advertise="yes" />
+        </File>
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="MainFeature" Title="Celowniczek" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Package>
+</Wix>
