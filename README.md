@@ -44,8 +44,6 @@ Jeśli chcesz samodzielnie skompilować projekt ze źródeł:
 ### Polecenia kompilacji:
 
 ```powershell
-# Pubikacja aplikacji .NET 8
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
 # Zbudowanie instalatora MSI
 $env:WIX_ACCEPT_EULA="1"
