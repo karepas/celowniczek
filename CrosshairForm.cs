@@ -84,7 +84,7 @@ namespace Celowniczek
 
             if (Style == CrosshairStyle.Cross)
             {
-                // Rysowanie obrysu (czarna krawędź)
+                // Obrys (czarne tło pod celownikiem)
                 if (EnableOutline)
                 {
                     using (Pen outlinePen = new Pen(OutlineColor, Thickness + 2))
@@ -106,7 +106,7 @@ namespace Celowniczek
                 }
             }
 
-            // Kropka w środku
+            // Kropka na środku
             if (DotRadius > 0 || Style == CrosshairStyle.DotOnly)
             {
                 int r = DotRadius > 0 ? DotRadius : 2;

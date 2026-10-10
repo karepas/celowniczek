@@ -15,6 +15,7 @@ namespace Celowniczek
         public int Gap { get; set; } = 4;
         public int DotRadius { get; set; } = 2;
         public CrosshairStyle Style { get; set; } = CrosshairStyle.Cross;
+        public string Language { get; set; } = "en"; // Domyślnie angielski
     }
 
     public static class ConfigManager
