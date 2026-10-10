@@ -1,7 +1,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="Celowniczek"
            Manufacturer="karepas"
-           Version="1.0.2"
+           Version="1.0.3"
            UpgradeCode="a8b1c2d3-e4f5-6789-abcd-ef0123456789">
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Celowniczek is already installed." />

@@ -29,7 +29,14 @@ namespace Celowniczek
             
             if (File.Exists(iconPath))
             {
-                trayIcon.Icon = new Icon(iconPath);
+                try
+                {
+                    trayIcon.Icon = new Icon(iconPath);
+                }
+                catch (ArgumentException)
+                {
+                    trayIcon.Icon = SystemIcons.Application;
+                }
             }
             else
             {
