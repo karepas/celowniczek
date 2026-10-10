@@ -16,13 +16,14 @@ namespace Celowniczek
 
     public static class UpdateChecker
     {
-        public static readonly string CurrentVersion = "1.0.1";
+        public static readonly string CurrentVersion = "1.0.2";
 
         // Ustawiony Twój nick: karepas
         private static readonly string GitHubApiUrl = "https://api.github.com/repos/karepas/celowniczek/releases/latest";
 
-        public static async Task CheckForUpdatesAsync(bool silent = true)
+        public static async Task CheckForUpdatesAsync(bool silent = true, string language = "en")
         {
+            bool polish = language == "pl";
             try
             {
                 using (HttpClient client = new HttpClient())
@@ -43,10 +44,10 @@ namespace Celowniczek
                         if (latest > current)
                         {
                             DialogResult result = MessageBox.Show(
-                                $"Dostępna jest nowa wersja Celowniczka ({cleanTag})!\n\n" +
-                                $"Lista zmian:\n{release.body}\n\n" +
-                                $"Czy chcesz przejść do strony pobierania na GitHubie?",
-                                "Aktualizacja Celowniczka",
+                                polish
+                                    ? $"Dostępna jest nowa wersja Celowniczka ({cleanTag})!\n\nLista zmian:\n{release.body}\n\nCzy chcesz otworzyć stronę pobierania na GitHubie?"
+                                    : $"A new version of Celowniczek is available ({cleanTag})!\n\nWhat's new:\n{release.body}\n\nWould you like to open the GitHub download page?",
+                                polish ? "Aktualizacja Celowniczka" : "Celowniczek update",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Information
                             );
@@ -62,7 +63,11 @@ namespace Celowniczek
                         }
                         else if (!silent)
                         {
-                            MessageBox.Show("Używasz najnowszej wersji Celowniczka!", "Brak aktualizacji", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show(
+                                polish ? "Używasz najnowszej wersji Celowniczka!" : "You are using the latest version of Celowniczek!",
+                                polish ? "Brak aktualizacji" : "No updates available",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information);
                         }
                     }
                 }
@@ -71,7 +76,11 @@ namespace Celowniczek
             {
                 if (!silent)
                 {
-                    MessageBox.Show($"Nie udało się sprawdzić aktualizacji: {ex.Message}", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(
+                        polish ? $"Nie udało się sprawdzić aktualizacji: {ex.Message}" : $"Could not check for updates: {ex.Message}",
+                        polish ? "Błąd" : "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                 }
             }
         }

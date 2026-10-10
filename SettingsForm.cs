@@ -10,7 +10,9 @@ namespace Celowniczek
         private readonly CrosshairForm crosshairForm;
 
         private ComboBox cbLanguage = null!;
+        private ComboBox cbStyle = null!;
         private Button btnColor = null!;
+        private Button btnOutlineColor = null!;
         private CheckBox cbOutline = null!;
         private TrackBar tbSize = null!;
         private TrackBar tbThickness = null!;
@@ -18,17 +20,19 @@ namespace Celowniczek
         private TrackBar tbDotRadius = null!;
 
         private Label lblLang = null!;
+        private Label lblStyle = null!;
         private Label lblSize = null!;
         private Label lblThickness = null!;
         private Label lblGap = null!;
         private Label lblDotRadius = null!;
+        private bool refreshingTexts;
 
         public SettingsForm(ConfigData config, CrosshairForm crosshairForm)
         {
             this.config = config;
             this.crosshairForm = crosshairForm;
 
-            this.Size = new Size(320, 470);
+            this.ClientSize = new Size(300, 500);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -51,54 +55,75 @@ namespace Celowniczek
 
         private void InitializeComponents()
         {
-            lblLang = new Label { Location = new Point(20, 15), AutoSize = true };
-            cbLanguage = new ComboBox { Location = new Point(20, 35), Size = new Size(260, 25), DropDownStyle = ComboBoxStyle.DropDownList };
-            cbLanguage.Items.Add("English (Default)");
+            lblLang = new Label { Location = new Point(20, 10), AutoSize = true };
+            cbLanguage = new ComboBox { Location = new Point(20, 28), Size = new Size(260, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            cbLanguage.Items.Add("English");
             cbLanguage.Items.Add("Polski");
             cbLanguage.SelectedIndex = config.Language == "pl" ? 1 : 0;
-            cbLanguage.SelectedIndexChanged += (s, e) => {
+            cbLanguage.SelectedIndexChanged += (s, e) =>
+            {
                 config.Language = cbLanguage.SelectedIndex == 1 ? "pl" : "en";
                 UpdateTexts();
                 RefreshLabels();
                 ConfigManager.SaveConfig(config);
             };
 
-            btnColor = new Button { Location = new Point(20, 75), Size = new Size(260, 32) };
+            lblStyle = new Label { Location = new Point(20, 62), AutoSize = true };
+            cbStyle = new ComboBox { Location = new Point(20, 80), Size = new Size(260, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            cbStyle.SelectedIndexChanged += (s, e) =>
+            {
+                if (!refreshingTexts && cbStyle.SelectedIndex >= 0)
+                {
+                    config.Style = (CrosshairStyle)cbStyle.SelectedIndex;
+                    ApplySettings();
+                }
+            };
+
+            btnColor = new Button { Location = new Point(20, 116), Size = new Size(260, 32) };
             btnColor.Click += BtnColor_Click;
 
-            cbOutline = new CheckBox { Checked = config.EnableOutline, Location = new Point(20, 115), AutoSize = true };
-            cbOutline.CheckedChanged += (s, e) => {
+            cbOutline = new CheckBox { Checked = config.EnableOutline, Location = new Point(20, 154), AutoSize = true };
+            cbOutline.CheckedChanged += (s, e) =>
+            {
                 config.EnableOutline = cbOutline.Checked;
+                btnOutlineColor.Enabled = cbOutline.Checked;
                 ApplySettings();
             };
 
-            lblSize = new Label { Location = new Point(20, 150), AutoSize = true };
-            tbSize = new TrackBar { Minimum = 2, Maximum = 50, Value = config.Size, Location = new Point(20, 170), Size = new Size(260, 45) };
-            tbSize.ValueChanged += (s, e) => {
+            btnOutlineColor = new Button { Location = new Point(20, 178), Size = new Size(260, 32), Enabled = config.EnableOutline };
+            btnOutlineColor.Click += BtnOutlineColor_Click;
+
+            lblSize = new Label { Location = new Point(20, 216), AutoSize = true };
+            tbSize = new TrackBar { Minimum = 2, Maximum = 50, Value = Math.Clamp(config.Size, 2, 50), Location = new Point(20, 233), Size = new Size(260, 45) };
+            tbSize.ValueChanged += (s, e) =>
+            {
                 config.Size = tbSize.Value;
                 RefreshLabels();
                 ApplySettings();
             };
 
-            lblThickness = new Label { Location = new Point(20, 215), AutoSize = true };
-            tbThickness = new TrackBar { Minimum = 1, Maximum = 10, Value = config.Thickness, Location = new Point(20, 235), Size = new Size(260, 45) };
-            tbThickness.ValueChanged += (s, e) => {
+            lblThickness = new Label { Location = new Point(20, 278), AutoSize = true };
+            tbThickness = new TrackBar { Minimum = 1, Maximum = 10, Value = Math.Clamp(config.Thickness, 1, 10), Location = new Point(20, 295), Size = new Size(260, 45) };
+            tbThickness.ValueChanged += (s, e) =>
+            {
                 config.Thickness = tbThickness.Value;
                 RefreshLabels();
                 ApplySettings();
             };
 
-            lblGap = new Label { Location = new Point(20, 280), AutoSize = true };
-            tbGap = new TrackBar { Minimum = 0, Maximum = 30, Value = config.Gap, Location = new Point(20, 300), Size = new Size(260, 45) };
-            tbGap.ValueChanged += (s, e) => {
+            lblGap = new Label { Location = new Point(20, 340), AutoSize = true };
+            tbGap = new TrackBar { Minimum = 0, Maximum = 30, Value = Math.Clamp(config.Gap, 0, 30), Location = new Point(20, 357), Size = new Size(260, 45) };
+            tbGap.ValueChanged += (s, e) =>
+            {
                 config.Gap = tbGap.Value;
                 RefreshLabels();
                 ApplySettings();
             };
 
-            lblDotRadius = new Label { Location = new Point(20, 345), AutoSize = true };
-            tbDotRadius = new TrackBar { Minimum = 0, Maximum = 10, Value = config.DotRadius, Location = new Point(20, 365), Size = new Size(260, 45) };
-            tbDotRadius.ValueChanged += (s, e) => {
+            lblDotRadius = new Label { Location = new Point(20, 402), AutoSize = true };
+            tbDotRadius = new TrackBar { Minimum = 0, Maximum = 10, Value = Math.Clamp(config.DotRadius, 0, 10), Location = new Point(20, 419), Size = new Size(260, 45) };
+            tbDotRadius.ValueChanged += (s, e) =>
+            {
                 config.DotRadius = tbDotRadius.Value;
                 RefreshLabels();
                 ApplySettings();
@@ -108,8 +133,11 @@ namespace Celowniczek
 
             this.Controls.Add(lblLang);
             this.Controls.Add(cbLanguage);
+            this.Controls.Add(lblStyle);
+            this.Controls.Add(cbStyle);
             this.Controls.Add(btnColor);
             this.Controls.Add(cbOutline);
+            this.Controls.Add(btnOutlineColor);
             this.Controls.Add(lblSize);
             this.Controls.Add(tbSize);
             this.Controls.Add(lblThickness);
@@ -122,26 +150,36 @@ namespace Celowniczek
 
         private void RefreshLabels()
         {
-            if (config.Language == "pl")
-            {
-                lblLang.Text = "Język / Language:";
-                btnColor.Text = "Zmień kolor celownika";
-                cbOutline.Text = "Włącz czarny obrys (Outline)";
-                lblSize.Text = $"Rozmiar (Size): {config.Size}";
-                lblThickness.Text = $"Grubość (Thickness): {config.Thickness}";
-                lblGap.Text = $"Przerwa (Gap): {config.Gap}";
-                lblDotRadius.Text = $"Rozmiar kropki (0 = brak): {config.DotRadius}";
-            }
-            else
-            {
-                lblLang.Text = "Language / Język:";
-                btnColor.Text = "Change Crosshair Color";
-                cbOutline.Text = "Enable Black Outline";
-                lblSize.Text = $"Size: {config.Size}";
-                lblThickness.Text = $"Thickness: {config.Thickness}";
-                lblGap.Text = $"Gap: {config.Gap}";
-                lblDotRadius.Text = $"Center Dot Size (0 = none): {config.DotRadius}";
-            }
+            bool polish = config.Language == "pl";
+            lblLang.Text = polish ? "Język / Language:" : "Language / Język:";
+            lblStyle.Text = polish ? "Styl:" : "Style:";
+            btnColor.Text = polish ? "Wybierz kolor" : "Choose color";
+            cbOutline.Text = polish ? "Włącz obrys" : "Enable outline";
+            btnOutlineColor.Text = polish ? "Wybierz kolor obrysu" : "Choose outline color";
+            lblSize.Text = polish ? $"Rozmiar: {config.Size}" : $"Size: {config.Size}";
+            lblThickness.Text = polish ? $"Grubość: {config.Thickness}" : $"Thickness: {config.Thickness}";
+            lblGap.Text = polish ? $"Przerwa: {config.Gap}" : $"Gap: {config.Gap}";
+            lblDotRadius.Text = polish ? $"Promień kropki (0 = brak): {config.DotRadius}" : $"Dot radius (0 = off): {config.DotRadius}";
+
+            refreshingTexts = true;
+            cbStyle.BeginUpdate();
+            cbStyle.Items.Clear();
+            cbStyle.Items.Add(polish ? "Krzyż" : "Cross");
+            cbStyle.Items.Add(polish ? "Sama kropka" : "Dot only");
+            cbStyle.Items.Add(polish ? "Okrąg" : "Circle");
+            cbStyle.SelectedIndex = Enum.IsDefined(config.Style) ? (int)config.Style : 0;
+            cbStyle.EndUpdate();
+            refreshingTexts = false;
+
+            UpdateColorButton(btnColor, config.ColorHex);
+            UpdateColorButton(btnOutlineColor, config.OutlineColorHex);
+        }
+
+        private static void UpdateColorButton(Button button, string colorHex)
+        {
+            Color color = ColorTranslator.FromHtml(colorHex);
+            button.BackColor = color;
+            button.ForeColor = color.GetBrightness() < 0.55f ? Color.White : Color.Black;
         }
 
         private void BtnColor_Click(object? sender, EventArgs e)
@@ -152,6 +190,21 @@ namespace Celowniczek
                 if (cd.ShowDialog() == DialogResult.OK)
                 {
                     config.ColorHex = ColorTranslator.ToHtml(cd.Color);
+                    RefreshLabels();
+                    ApplySettings();
+                }
+            }
+        }
+
+        private void BtnOutlineColor_Click(object? sender, EventArgs e)
+        {
+            using (ColorDialog cd = new ColorDialog())
+            {
+                cd.Color = ColorTranslator.FromHtml(config.OutlineColorHex);
+                if (cd.ShowDialog() == DialogResult.OK)
+                {
+                    config.OutlineColorHex = ColorTranslator.ToHtml(cd.Color);
+                    RefreshLabels();
                     ApplySettings();
                 }
             }

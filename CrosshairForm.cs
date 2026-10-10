@@ -106,6 +106,22 @@ namespace Celowniczek
                 }
             }
 
+            if (Style == CrosshairStyle.Circle)
+            {
+                if (EnableOutline)
+                {
+                    using (Pen outlinePen = new Pen(OutlineColor, Thickness + 2))
+                    {
+                        g.DrawEllipse(outlinePen, centerX - SizePx, centerY - SizePx, SizePx * 2, SizePx * 2);
+                    }
+                }
+
+                using (Pen pen = new Pen(CrosshairColor, Thickness))
+                {
+                    g.DrawEllipse(pen, centerX - SizePx, centerY - SizePx, SizePx * 2, SizePx * 2);
+                }
+            }
+
             // Kropka na środku
             if (DotRadius > 0 || Style == CrosshairStyle.DotOnly)
             {

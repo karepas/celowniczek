@@ -23,7 +23,7 @@ namespace Celowniczek
             CrosshairForm crosshair = new CrosshairForm();
             ConfigManager.ApplyToForm(config, crosshair);
 
-            _ = UpdateChecker.CheckForUpdatesAsync(silent: true);
+            _ = UpdateChecker.CheckForUpdatesAsync(silent: true, language: config.Language);
 
             NotifyIcon trayIcon = new NotifyIcon();
             
@@ -41,18 +41,31 @@ namespace Celowniczek
 
             ContextMenuStrip menu = new ContextMenuStrip();
             
-            ToolStripMenuItem itemSettings = new ToolStripMenuItem(config.Language == "pl" ? "Ustawienia" : "Settings");
+            ToolStripMenuItem itemSettings = new ToolStripMenuItem();
+            ToolStripMenuItem itemUpdate = new ToolStripMenuItem();
+            ToolStripMenuItem itemExit = new ToolStripMenuItem();
+
+            void RefreshTrayTexts()
+            {
+                bool polish = config.Language == "pl";
+                itemSettings.Text = polish ? "Ustawienia" : "Settings";
+                itemUpdate.Text = polish ? "Sprawdź aktualizacje" : "Check for Updates";
+                itemExit.Text = polish ? "Wyjście" : "Exit";
+            }
+
+            RefreshTrayTexts();
             itemSettings.Click += (s, e) => {
-                SettingsForm settings = new SettingsForm(config, crosshair);
-                settings.ShowDialog();
+                using (SettingsForm settings = new SettingsForm(config, crosshair))
+                {
+                    settings.ShowDialog();
+                }
+                RefreshTrayTexts();
             };
 
-            ToolStripMenuItem itemUpdate = new ToolStripMenuItem(config.Language == "pl" ? "Sprawdź aktualizacje" : "Check for Updates");
             itemUpdate.Click += async (s, e) => {
-                await UpdateChecker.CheckForUpdatesAsync(silent: false);
+                await UpdateChecker.CheckForUpdatesAsync(silent: false, language: config.Language);
             };
 
-            ToolStripMenuItem itemExit = new ToolStripMenuItem(config.Language == "pl" ? "Wyjście" : "Exit");
             itemExit.Click += (s, e) => {
                 trayIcon.Visible = false;
                 Application.Exit();
