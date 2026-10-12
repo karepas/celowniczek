@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Celowniczek
@@ -10,14 +11,23 @@ namespace Celowniczek
         [STAThread]
         static void Main()
         {
+            using Mutex singleInstanceMutex = new(true, @"Local\Celowniczek.SingleInstance", out bool isFirstInstance);
+            if (!isFirstInstance)
+            {
+                return;
+            }
+
             ApplicationConfiguration.Initialize();
 
             string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
-            try
+            if (!File.Exists(iconPath))
             {
-                IconGenerator.GenerateAppIcon(iconPath);
+                try
+                {
+                    IconGenerator.GenerateAppIcon(iconPath);
+                }
+                catch { }
             }
-            catch { }
 
             ConfigData config = ConfigManager.LoadConfig();
             CrosshairForm crosshair = new CrosshairForm();

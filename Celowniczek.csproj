@@ -3,11 +3,18 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <Version>1.0.4</Version>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>app.ico</ApplicationIcon>
     
     <!-- Usunięto/Zakomentowano niepoprawny plik app.ico z procesu kompilacji zasobów Win32 -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="app.ico" />
+    <Content Include="app.ico" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" ExcludeFromSingleFile="true" />
+  </ItemGroup>
 
 </Project>
