@@ -16,7 +16,7 @@ namespace Celowniczek
 
     public static class UpdateChecker
     {
-        public static readonly string CurrentVersion = "1.0.5";
+        public static readonly string CurrentVersion = "1.0.6";
 
         // Ustawiony Twój nick: karepas
         private static readonly string GitHubApiUrl = "https://api.github.com/repos/karepas/celowniczek/releases/latest";
