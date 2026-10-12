@@ -9,6 +9,14 @@ namespace Celowniczek
         private readonly ConfigData config;
         private readonly CrosshairForm crosshairForm;
 
+        private ComboBox cbProfiles = null!;
+        private TextBox txtProfileName = null!;
+        private Button btnNewProfile = null!;
+        private Button btnSaveProfile = null!;
+        private Button btnDeleteProfile = null!;
+        private Button btnChangePosition = null!;
+        private Label lblProfiles = null!;
+        private Label lblProfileName = null!;
         private ComboBox cbLanguage = null!;
         private ComboBox cbStyle = null!;
         private Button btnColor = null!;
@@ -26,13 +34,16 @@ namespace Celowniczek
         private Label lblGap = null!;
         private Label lblDotRadius = null!;
         private bool refreshingTexts;
+        private bool creatingProfile;
+        private double? pendingPositionX;
+        private double? pendingPositionY;
 
         public SettingsForm(ConfigData config, CrosshairForm crosshairForm)
         {
             this.config = config;
             this.crosshairForm = crosshairForm;
 
-            this.ClientSize = new Size(300, 500);
+            this.ClientSize = new Size(390, 670);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -55,8 +66,45 @@ namespace Celowniczek
 
         private void InitializeComponents()
         {
-            lblLang = new Label { Location = new Point(20, 10), AutoSize = true };
-            cbLanguage = new ComboBox { Location = new Point(20, 28), Size = new Size(260, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            lblProfiles = new Label { Location = new Point(20, 10), AutoSize = true };
+            cbProfiles = new ComboBox { Location = new Point(20, 28), Size = new Size(350, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            cbProfiles.SelectedIndexChanged += (s, e) =>
+            {
+                if (!refreshingTexts && cbProfiles.SelectedItem is string selectedProfile)
+                {
+                    creatingProfile = false;
+                    pendingPositionX = null;
+                    pendingPositionY = null;
+                    config.SelectedPositionProfile = selectedProfile;
+                    ConfigManager.ApplyToForm(config, crosshairForm);
+                    txtProfileName.Text = selectedProfile;
+                    ConfigManager.SaveConfig(config);
+                }
+            };
+
+            lblProfileName = new Label { Location = new Point(20, 61), AutoSize = true };
+            txtProfileName = new TextBox { Location = new Point(20, 79), Size = new Size(185, 25), MaxLength = 40 };
+            btnNewProfile = new Button { Location = new Point(213, 77), Size = new Size(76, 29) };
+            btnNewProfile.Click += (s, e) =>
+            {
+                creatingProfile = true;
+                pendingPositionX = null;
+                pendingPositionY = null;
+                txtProfileName.Clear();
+                txtProfileName.Focus();
+            };
+
+            btnSaveProfile = new Button { Location = new Point(294, 77), Size = new Size(76, 29) };
+            btnSaveProfile.Click += (s, e) => SavePositionProfile();
+
+            btnChangePosition = new Button { Location = new Point(20, 113), Size = new Size(350, 32) };
+            btnChangePosition.Click += (s, e) => ChoosePosition();
+
+            btnDeleteProfile = new Button { Location = new Point(20, 151), Size = new Size(350, 28) };
+            btnDeleteProfile.Click += (s, e) => DeletePositionProfile();
+
+            lblLang = new Label { Location = new Point(20, 190), AutoSize = true };
+            cbLanguage = new ComboBox { Location = new Point(20, 208), Size = new Size(350, 25), DropDownStyle = ComboBoxStyle.DropDownList };
             cbLanguage.Items.Add("English");
             cbLanguage.Items.Add("Polski");
             cbLanguage.SelectedIndex = config.Language == "pl" ? 1 : 0;
@@ -68,8 +116,8 @@ namespace Celowniczek
                 ConfigManager.SaveConfig(config);
             };
 
-            lblStyle = new Label { Location = new Point(20, 62), AutoSize = true };
-            cbStyle = new ComboBox { Location = new Point(20, 80), Size = new Size(260, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            lblStyle = new Label { Location = new Point(20, 241), AutoSize = true };
+            cbStyle = new ComboBox { Location = new Point(20, 259), Size = new Size(350, 25), DropDownStyle = ComboBoxStyle.DropDownList };
             cbStyle.SelectedIndexChanged += (s, e) =>
             {
                 if (!refreshingTexts && cbStyle.SelectedIndex >= 0)
@@ -79,10 +127,10 @@ namespace Celowniczek
                 }
             };
 
-            btnColor = new Button { Location = new Point(20, 116), Size = new Size(260, 32) };
+            btnColor = new Button { Location = new Point(20, 295), Size = new Size(350, 32) };
             btnColor.Click += BtnColor_Click;
 
-            cbOutline = new CheckBox { Checked = config.EnableOutline, Location = new Point(20, 154), AutoSize = true };
+            cbOutline = new CheckBox { Checked = config.EnableOutline, Location = new Point(20, 333), AutoSize = true };
             cbOutline.CheckedChanged += (s, e) =>
             {
                 config.EnableOutline = cbOutline.Checked;
@@ -90,11 +138,11 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            btnOutlineColor = new Button { Location = new Point(20, 178), Size = new Size(260, 32), Enabled = config.EnableOutline };
+            btnOutlineColor = new Button { Location = new Point(20, 357), Size = new Size(350, 32), Enabled = config.EnableOutline };
             btnOutlineColor.Click += BtnOutlineColor_Click;
 
-            lblSize = new Label { Location = new Point(20, 216), AutoSize = true };
-            tbSize = new TrackBar { Minimum = 2, Maximum = 50, Value = Math.Clamp(config.Size, 2, 50), Location = new Point(20, 233), Size = new Size(260, 45) };
+            lblSize = new Label { Location = new Point(20, 395), AutoSize = true };
+            tbSize = new TrackBar { Minimum = 2, Maximum = 50, Value = Math.Clamp(config.Size, 2, 50), Location = new Point(20, 412), Size = new Size(350, 45) };
             tbSize.ValueChanged += (s, e) =>
             {
                 config.Size = tbSize.Value;
@@ -102,8 +150,8 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            lblThickness = new Label { Location = new Point(20, 278), AutoSize = true };
-            tbThickness = new TrackBar { Minimum = 1, Maximum = 10, Value = Math.Clamp(config.Thickness, 1, 10), Location = new Point(20, 295), Size = new Size(260, 45) };
+            lblThickness = new Label { Location = new Point(20, 457), AutoSize = true };
+            tbThickness = new TrackBar { Minimum = 1, Maximum = 10, Value = Math.Clamp(config.Thickness, 1, 10), Location = new Point(20, 474), Size = new Size(350, 45) };
             tbThickness.ValueChanged += (s, e) =>
             {
                 config.Thickness = tbThickness.Value;
@@ -111,8 +159,8 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            lblGap = new Label { Location = new Point(20, 340), AutoSize = true };
-            tbGap = new TrackBar { Minimum = 0, Maximum = 30, Value = Math.Clamp(config.Gap, 0, 30), Location = new Point(20, 357), Size = new Size(260, 45) };
+            lblGap = new Label { Location = new Point(20, 519), AutoSize = true };
+            tbGap = new TrackBar { Minimum = 0, Maximum = 30, Value = Math.Clamp(config.Gap, 0, 30), Location = new Point(20, 536), Size = new Size(350, 45) };
             tbGap.ValueChanged += (s, e) =>
             {
                 config.Gap = tbGap.Value;
@@ -120,8 +168,8 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            lblDotRadius = new Label { Location = new Point(20, 402), AutoSize = true };
-            tbDotRadius = new TrackBar { Minimum = 0, Maximum = 10, Value = Math.Clamp(config.DotRadius, 0, 10), Location = new Point(20, 419), Size = new Size(260, 45) };
+            lblDotRadius = new Label { Location = new Point(20, 581), AutoSize = true };
+            tbDotRadius = new TrackBar { Minimum = 0, Maximum = 10, Value = Math.Clamp(config.DotRadius, 0, 10), Location = new Point(20, 598), Size = new Size(350, 45) };
             tbDotRadius.ValueChanged += (s, e) =>
             {
                 config.DotRadius = tbDotRadius.Value;
@@ -131,6 +179,14 @@ namespace Celowniczek
 
             RefreshLabels();
 
+            this.Controls.Add(lblProfiles);
+            this.Controls.Add(cbProfiles);
+            this.Controls.Add(lblProfileName);
+            this.Controls.Add(txtProfileName);
+            this.Controls.Add(btnNewProfile);
+            this.Controls.Add(btnSaveProfile);
+            this.Controls.Add(btnChangePosition);
+            this.Controls.Add(btnDeleteProfile);
             this.Controls.Add(lblLang);
             this.Controls.Add(cbLanguage);
             this.Controls.Add(lblStyle);
@@ -151,6 +207,15 @@ namespace Celowniczek
         private void RefreshLabels()
         {
             bool polish = config.Language == "pl";
+            ConfigManager.NormalizeProfiles(config);
+            this.ClientSize = new Size(390, 670);
+            lblProfiles.Text = polish ? "Profil pozycji:" : "Position profile:";
+            lblProfileName.Text = polish ? "Nazwa profilu:" : "Profile name:";
+            btnNewProfile.Text = polish ? "Nowy" : "New";
+            btnSaveProfile.Text = polish ? "Zapisz" : "Save";
+            btnChangePosition.Text = polish ? "Zmień miejsce" : "Change position";
+            btnDeleteProfile.Text = polish ? "Usuń wybrany profil" : "Delete selected profile";
+            btnDeleteProfile.Enabled = config.PositionProfiles.Count > 1;
             lblLang.Text = polish ? "Język / Language:" : "Language / Język:";
             lblStyle.Text = polish ? "Styl:" : "Style:";
             btnColor.Text = polish ? "Wybierz kolor" : "Choose color";
@@ -162,6 +227,16 @@ namespace Celowniczek
             lblDotRadius.Text = polish ? $"Promień kropki (0 = brak): {config.DotRadius}" : $"Dot radius (0 = off): {config.DotRadius}";
 
             refreshingTexts = true;
+            cbProfiles.BeginUpdate();
+            cbProfiles.Items.Clear();
+            foreach (CrosshairPositionProfile profile in config.PositionProfiles)
+            {
+                cbProfiles.Items.Add(profile.Name);
+            }
+            cbProfiles.SelectedIndex = config.PositionProfiles.FindIndex(profile =>
+                string.Equals(profile.Name, config.SelectedPositionProfile, StringComparison.OrdinalIgnoreCase));
+            cbProfiles.EndUpdate();
+
             cbStyle.BeginUpdate();
             cbStyle.Items.Clear();
             cbStyle.Items.Add(polish ? "Krzyż" : "Cross");
@@ -173,6 +248,118 @@ namespace Celowniczek
 
             UpdateColorButton(btnColor, config.ColorHex);
             UpdateColorButton(btnOutlineColor, config.OutlineColorHex);
+            if (!creatingProfile)
+            {
+                txtProfileName.Text = config.SelectedPositionProfile;
+            }
+        }
+
+        private void ChoosePosition()
+        {
+            bool polish = config.Language == "pl";
+            using PositionPickerForm picker = new PositionPickerForm(polish, crosshairForm.PositionX, crosshairForm.PositionY);
+            if (picker.ShowDialog(this) != DialogResult.OK)
+            {
+                return;
+            }
+
+            crosshairForm.PositionX = picker.PositionX;
+            crosshairForm.PositionY = picker.PositionY;
+            crosshairForm.Redraw();
+
+            if (creatingProfile)
+            {
+                pendingPositionX = picker.PositionX;
+                pendingPositionY = picker.PositionY;
+            }
+            else
+            {
+                CrosshairPositionProfile profile = ConfigManager.GetSelectedPositionProfile(config);
+                profile.X = picker.PositionX;
+                profile.Y = picker.PositionY;
+                ConfigManager.SaveConfig(config);
+            }
+        }
+
+        private void SavePositionProfile()
+        {
+            string name = txtProfileName.Text.Trim();
+            if (name.Length == 0)
+            {
+                ShowProfileMessage("Wpisz nazwę profilu.", "Enter a profile name.");
+                txtProfileName.Focus();
+                return;
+            }
+
+            CrosshairPositionProfile? namedProfile = config.PositionProfiles.FirstOrDefault(item =>
+                string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase));
+            CrosshairPositionProfile? profile;
+
+            if (creatingProfile)
+            {
+                if (namedProfile != null)
+                {
+                    ShowProfileMessage("Profil o tej nazwie już istnieje.", "A profile with that name already exists.");
+                    return;
+                }
+
+                profile = new CrosshairPositionProfile { Name = name };
+                config.PositionProfiles.Add(profile);
+            }
+            else
+            {
+                profile = ConfigManager.GetSelectedPositionProfile(config);
+                if (namedProfile != null && !ReferenceEquals(namedProfile, profile))
+                {
+                    ShowProfileMessage("Profil o tej nazwie już istnieje.", "A profile with that name already exists.");
+                    return;
+                }
+            }
+
+            profile.Name = name;
+            profile.X = pendingPositionX ?? crosshairForm.PositionX;
+            profile.Y = pendingPositionY ?? crosshairForm.PositionY;
+            config.SelectedPositionProfile = name;
+            creatingProfile = false;
+            pendingPositionX = null;
+            pendingPositionY = null;
+            ConfigManager.ApplyToForm(config, crosshairForm);
+            ConfigManager.SaveConfig(config);
+            RefreshLabels();
+        }
+
+        private void DeletePositionProfile()
+        {
+            if (config.PositionProfiles.Count <= 1)
+            {
+                return;
+            }
+
+            CrosshairPositionProfile profile = ConfigManager.GetSelectedPositionProfile(config);
+            DialogResult result = MessageBox.Show(
+                config.Language == "pl" ? $"Usunąć profil \"{profile.Name}\"?" : $"Delete profile \"{profile.Name}\"?",
+                config.Language == "pl" ? "Usuń profil" : "Delete profile",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            config.PositionProfiles.Remove(profile);
+            config.SelectedPositionProfile = config.PositionProfiles[0].Name;
+            ConfigManager.ApplyToForm(config, crosshairForm);
+            ConfigManager.SaveConfig(config);
+            RefreshLabels();
+        }
+
+        private void ShowProfileMessage(string polishMessage, string englishMessage)
+        {
+            MessageBox.Show(
+                config.Language == "pl" ? polishMessage : englishMessage,
+                config.Language == "pl" ? "Profile pozycji" : "Position profiles",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
 
         private static void UpdateColorButton(Button button, string colorHex)

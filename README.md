@@ -6,7 +6,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 
 ### ✨ Features
 - **100% Click-Through:** The overlay is completely transparent to the mouse (`WS_EX_TRANSPARENT`), preventing focus loss in-game (no Alt+Tab issues while shooting).
-- **Precise Positioning:** The crosshair is rendered perfectly in the mathematical center of the screen.
+- **Position Profiles:** Click **Change position** to place the crosshair anywhere on screen, then save named profiles for different games.
 - **Full Customization:**
   - Color adjustment (RGB/HEX palette)
   - Black outline to increase visibility
@@ -21,7 +21,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 2. Download the latest installer `CelowniczekInstaller.msi`.
 3. Run the file and go through the simple installation process.
 4. When running the game, make sure your graphics mode is set to **Borderless / Fullscreen Windowed**.
-5. In case of alignment issues, open settings via the tray icon and adjust parameters like gap.
+5. To align the overlay with a game's crosshair, open settings, click **Change position**, and save a named profile for that game.
 
 ### 🛠️ Requirements & Compilation
 If you want to compile the project yourself from sources:
@@ -42,7 +42,7 @@ Lekka, otwartoźródłowa i precyzyjna nakładka celownika (overlay) dla systemu
 ✨ Funkcje
 100% Click-Through: Nakładka jest całkowicie przenikalna dla myszy (WS_EX_TRANSPARENT), co zapobiega gubieniu ostrości w grze (brak problemów z Alt+Tab podczas strzelania).
 
-Precyzyjne pozycjonowanie: Celownik rysowany jest idealnie w matematycznym środku ekranu.
+Profile pozycji: Kliknij „Zmień miejsce”, aby ustawić celownik w dowolnym miejscu ekranu, a następnie zapisz profil pod własną nazwą dla danej gry.
 
 Pełna personalizacja:
 
@@ -69,7 +69,7 @@ Uruchom plik i przejdź przez prosty proces instalacji.
 
 Po uruchomieniu gry upewnij się, że masz ustawiony tryb graficzny Pełny ekran w oknie (Borderless / Fullscreen Windowed).
 
-W razie problemów z miejscem/pozycjonowaniem wejdź w ikonkę celownika w zasobniku systemowym, otwórz ustawienia celownika i zmień np. odległość (Gap).
+Aby dopasować celownik do gry, otwórz ustawienia, kliknij „Zmień miejsce” i zapisz nazwany profil dla tej gry.
 
 🛠️ Wymagania i Kompilacja
 Jeśli chcesz samodzielnie skompilować projekt ze źródeł:

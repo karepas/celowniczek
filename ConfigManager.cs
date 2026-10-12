@@ -1,10 +1,18 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace Celowniczek
 {
+    public class CrosshairPositionProfile
+    {
+        public string Name { get; set; } = "Default";
+        public double X { get; set; } = 0.5;
+        public double Y { get; set; } = 0.5;
+    }
+
     public class ConfigData
     {
         public string ColorHex { get; set; } = "#00FFFF";
@@ -16,6 +24,11 @@ namespace Celowniczek
         public int DotRadius { get; set; } = 2;
         public CrosshairStyle Style { get; set; } = CrosshairStyle.Cross;
         public string Language { get; set; } = "en"; // Domyślnie angielski
+        public string SelectedPositionProfile { get; set; } = "Default";
+        public List<CrosshairPositionProfile> PositionProfiles { get; set; } = new()
+        {
+            new CrosshairPositionProfile()
+        };
     }
 
     public static class ConfigManager
@@ -31,7 +44,11 @@ namespace Celowniczek
                 {
                     string json = File.ReadAllText(FilePath);
                     ConfigData? data = JsonSerializer.Deserialize<ConfigData>(json);
-                    if (data != null) return data;
+                    if (data != null)
+                    {
+                        NormalizeProfiles(data);
+                        return data;
+                    }
                 }
             }
             catch { }
@@ -43,6 +60,7 @@ namespace Celowniczek
         {
             try
             {
+                NormalizeProfiles(data);
                 if (!Directory.Exists(FolderPath))
                 {
                     Directory.CreateDirectory(FolderPath);
@@ -56,6 +74,7 @@ namespace Celowniczek
 
         public static void ApplyToForm(ConfigData data, CrosshairForm form)
         {
+            CrosshairPositionProfile profile = GetSelectedPositionProfile(data);
             form.CrosshairColor = ColorTranslator.FromHtml(data.ColorHex);
             form.OutlineColor = ColorTranslator.FromHtml(data.OutlineColorHex);
             form.EnableOutline = data.EnableOutline;
@@ -64,9 +83,44 @@ namespace Celowniczek
             form.Gap = data.Gap;
             form.DotRadius = data.DotRadius;
             form.Style = data.Style;
+            form.PositionX = profile.X;
+            form.PositionY = profile.Y;
 
             form.UpdateBoundsToCenter();
             form.Redraw();
+        }
+
+        public static CrosshairPositionProfile GetSelectedPositionProfile(ConfigData data)
+        {
+            NormalizeProfiles(data);
+            return data.PositionProfiles.First(profile =>
+                string.Equals(profile.Name, data.SelectedPositionProfile, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static void NormalizeProfiles(ConfigData data)
+        {
+            data.PositionProfiles ??= new List<CrosshairPositionProfile>();
+            data.PositionProfiles = data.PositionProfiles
+                .Where(profile => profile != null && !string.IsNullOrWhiteSpace(profile.Name))
+                .ToList();
+
+            if (data.PositionProfiles.Count == 0)
+            {
+                data.PositionProfiles.Add(new CrosshairPositionProfile());
+            }
+
+            foreach (CrosshairPositionProfile profile in data.PositionProfiles)
+            {
+                profile.Name = profile.Name.Trim();
+                profile.X = double.IsFinite(profile.X) ? Math.Clamp(profile.X, 0, 1) : 0.5;
+                profile.Y = double.IsFinite(profile.Y) ? Math.Clamp(profile.Y, 0, 1) : 0.5;
+            }
+
+            if (!data.PositionProfiles.Any(profile =>
+                string.Equals(profile.Name, data.SelectedPositionProfile, StringComparison.OrdinalIgnoreCase)))
+            {
+                data.SelectedPositionProfile = data.PositionProfiles[0].Name;
+            }
         }
     }
 }

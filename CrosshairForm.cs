@@ -33,6 +33,8 @@ namespace Celowniczek
         public int Gap { get; set; } = 4;
         public int DotRadius { get; set; } = 2;
         public CrosshairStyle Style { get; set; } = CrosshairStyle.Cross;
+        public double PositionX { get; set; } = 0.5;
+        public double PositionY { get; set; } = 0.5;
 
         public CrosshairForm()
         {
@@ -52,7 +54,7 @@ namespace Celowniczek
         {
             Rectangle screen = Screen.PrimaryScreen?.Bounds ?? Screen.AllScreens[0].Bounds;
             this.Size = new Size(screen.Width, screen.Height);
-            this.Location = new Point(0, 0);
+            this.Location = screen.Location;
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -79,8 +81,8 @@ namespace Celowniczek
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
 
-            int centerX = this.Width / 2;
-            int centerY = this.Height / 2;
+            int centerX = (int)Math.Round((this.Width - 1) * PositionX);
+            int centerY = (int)Math.Round((this.Height - 1) * PositionY);
 
             if (Style == CrosshairStyle.Cross)
             {
