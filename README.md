@@ -7,6 +7,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 ### ✨ Features
 - **100% Click-Through:** The overlay is completely transparent to the mouse (`WS_EX_TRANSPARENT`), preventing focus loss in-game (no Alt+Tab issues while shooting).
 - **Position Profiles:** Use the horizontal and vertical sliders or click **Change position**, then save named profiles for different games.
+- **Community Crosshairs:** Browse shared crosshairs from `community/crosshairs.json`, apply them, or submit your current settings to a Discord webhook.
 - **Full Customization:**
   - Color adjustment (RGB/HEX palette)
   - Black outline to increase visibility
@@ -22,6 +23,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 3. Run the file and go through the simple installation process.
 4. When running the game, make sure your graphics mode is set to **Borderless / Fullscreen Windowed**.
 5. To align the overlay with a game's crosshair, adjust the horizontal and vertical sliders or click **Change position**, then save a named profile for that game.
+6. Community submissions require configuring `DiscordWebhookUrl` in `CommunityCrosshairService.cs` before building the app. Keep real webhook URLs private.
 
 ### 🛠️ Requirements & Compilation
 If you want to compile the project yourself from sources:
@@ -43,6 +45,8 @@ Lekka, otwartoźródłowa i precyzyjna nakładka celownika (overlay) dla systemu
 100% Click-Through: Nakładka jest całkowicie przenikalna dla myszy (WS_EX_TRANSPARENT), co zapobiega gubieniu ostrości w grze (brak problemów z Alt+Tab podczas strzelania).
 
 Profile pozycji: Ustaw położenie suwakami poziomym i pionowym lub kliknij „Zmień miejsce”, a następnie zapisz profil pod własną nazwą dla danej gry.
+
+Społeczność celowników: Przeglądaj celowniki z `community/crosshairs.json`, stosuj je lub wysyłaj aktualne ustawienia przez Discord Webhook. Przed kompilacją ustaw `DiscordWebhookUrl` w `CommunityCrosshairService.cs`; nie publikuj prawdziwego adresu webhooka.
 
 Pełna personalizacja:
 

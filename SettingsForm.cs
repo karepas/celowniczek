@@ -8,6 +8,11 @@ namespace Celowniczek
     {
         private readonly ConfigData config;
         private readonly CrosshairForm crosshairForm;
+        private readonly TabControl settingsTabs;
+        private readonly TabPage settingsTab;
+        private readonly TabPage communityTab;
+        private readonly Panel settingsPanel;
+        private readonly CommunityCrosshairsControl communityControl;
 
         private ComboBox cbProfiles = null!;
         private TextBox txtProfileName = null!;
@@ -47,10 +52,28 @@ namespace Celowniczek
             this.config = config;
             this.crosshairForm = crosshairForm;
 
-            this.ClientSize = new Size(390, 680);
+            this.ClientSize = new Size(430, 740);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
+
+            settingsTabs = new TabControl { Dock = DockStyle.Fill };
+            settingsTab = new TabPage();
+            communityTab = new TabPage();
+            settingsPanel = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+            communityControl = new CommunityCrosshairsControl(config, crosshairForm);
+            settingsTab.Controls.Add(settingsPanel);
+            communityTab.Controls.Add(communityControl);
+            settingsTabs.TabPages.Add(settingsTab);
+            settingsTabs.TabPages.Add(communityTab);
+            settingsTabs.SelectedIndexChanged += async (s, e) =>
+            {
+                if (settingsTabs.SelectedTab == communityTab)
+                {
+                    await communityControl.EnsureLoadedAsync();
+                }
+            };
+            this.Controls.Add(settingsTabs);
 
             UpdateTexts();
             InitializeComponents();
@@ -66,6 +89,9 @@ namespace Celowniczek
             {
                 this.Text = "Celowniczek - Settings";
             }
+
+            UpdateTabTexts();
+            communityControl.UpdateTexts();
         }
 
         private void InitializeComponents()
@@ -193,40 +219,39 @@ namespace Celowniczek
 
             RefreshLabels();
 
-            this.Controls.Add(lblProfiles);
-            this.Controls.Add(cbProfiles);
-            this.Controls.Add(lblProfileName);
-            this.Controls.Add(txtProfileName);
-            this.Controls.Add(btnNewProfile);
-            this.Controls.Add(btnSaveProfile);
-            this.Controls.Add(btnChangePosition);
-            this.Controls.Add(btnDeleteProfile);
-            this.Controls.Add(lblLang);
-            this.Controls.Add(cbLanguage);
-            this.Controls.Add(lblPositionX);
-            this.Controls.Add(tbPositionX);
-            this.Controls.Add(lblPositionY);
-            this.Controls.Add(tbPositionY);
-            this.Controls.Add(lblStyle);
-            this.Controls.Add(cbStyle);
-            this.Controls.Add(btnColor);
-            this.Controls.Add(cbOutline);
-            this.Controls.Add(btnOutlineColor);
-            this.Controls.Add(lblSize);
-            this.Controls.Add(tbSize);
-            this.Controls.Add(lblThickness);
-            this.Controls.Add(tbThickness);
-            this.Controls.Add(lblGap);
-            this.Controls.Add(tbGap);
-            this.Controls.Add(lblDotRadius);
-            this.Controls.Add(tbDotRadius);
+            settingsPanel.Controls.Add(lblProfiles);
+            settingsPanel.Controls.Add(cbProfiles);
+            settingsPanel.Controls.Add(lblProfileName);
+            settingsPanel.Controls.Add(txtProfileName);
+            settingsPanel.Controls.Add(btnNewProfile);
+            settingsPanel.Controls.Add(btnSaveProfile);
+            settingsPanel.Controls.Add(btnChangePosition);
+            settingsPanel.Controls.Add(btnDeleteProfile);
+            settingsPanel.Controls.Add(lblLang);
+            settingsPanel.Controls.Add(cbLanguage);
+            settingsPanel.Controls.Add(lblPositionX);
+            settingsPanel.Controls.Add(tbPositionX);
+            settingsPanel.Controls.Add(lblPositionY);
+            settingsPanel.Controls.Add(tbPositionY);
+            settingsPanel.Controls.Add(lblStyle);
+            settingsPanel.Controls.Add(cbStyle);
+            settingsPanel.Controls.Add(btnColor);
+            settingsPanel.Controls.Add(cbOutline);
+            settingsPanel.Controls.Add(btnOutlineColor);
+            settingsPanel.Controls.Add(lblSize);
+            settingsPanel.Controls.Add(tbSize);
+            settingsPanel.Controls.Add(lblThickness);
+            settingsPanel.Controls.Add(tbThickness);
+            settingsPanel.Controls.Add(lblGap);
+            settingsPanel.Controls.Add(tbGap);
+            settingsPanel.Controls.Add(lblDotRadius);
+            settingsPanel.Controls.Add(tbDotRadius);
         }
 
         private void RefreshLabels()
         {
             bool polish = config.Language == "pl";
             ConfigManager.NormalizeProfiles(config);
-            this.ClientSize = new Size(390, 680);
             lblProfiles.Text = polish ? "Profil pozycji:" : "Position profile:";
             lblProfileName.Text = polish ? "Nazwa profilu:" : "Profile name:";
             lblPositionX.Text = polish ? $"Poziomo: {tbPositionX.Value / 10}%" : $"Horizontal: {tbPositionX.Value / 10}%";
@@ -245,6 +270,7 @@ namespace Celowniczek
             lblThickness.Text = polish ? $"Grubość: {config.Thickness}" : $"Thickness: {config.Thickness}";
             lblGap.Text = polish ? $"Przerwa: {config.Gap}" : $"Gap: {config.Gap}";
             lblDotRadius.Text = polish ? $"Promień kropki (0 = brak): {config.DotRadius}" : $"Dot radius (0 = off): {config.DotRadius}";
+            UpdateTabTexts();
 
             refreshingTexts = true;
             cbProfiles.BeginUpdate();
@@ -272,6 +298,18 @@ namespace Celowniczek
             {
                 txtProfileName.Text = config.SelectedPositionProfile;
             }
+        }
+
+        private void UpdateTabTexts()
+        {
+            if (settingsTab == null || communityTab == null)
+            {
+                return;
+            }
+
+            bool polish = config.Language == "pl";
+            settingsTab.Text = polish ? "Ustawienia" : "Settings";
+            communityTab.Text = polish ? "Społeczność" : "Community";
         }
 
         private void ChoosePosition()

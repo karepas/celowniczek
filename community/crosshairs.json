@@ -1,0 +1,35 @@
+[
+  {
+    "Title": "Classic Cyan",
+    "Author": "Celowniczek Community",
+    "Size": 12,
+    "Thickness": 2,
+    "Gap": 4,
+    "DotRadius": 0,
+    "ColorHex": "#00FFFF",
+    "EnableOutline": true,
+    "Style": "Cross"
+  },
+  {
+    "Title": "Compact Green Dot",
+    "Author": "Celowniczek Community",
+    "Size": 8,
+    "Thickness": 2,
+    "Gap": 3,
+    "DotRadius": 2,
+    "ColorHex": "#7CFF00",
+    "EnableOutline": true,
+    "Style": "Cross"
+  },
+  {
+    "Title": "Small Red Circle",
+    "Author": "Celowniczek Community",
+    "Size": 10,
+    "Thickness": 2,
+    "Gap": 0,
+    "DotRadius": 0,
+    "ColorHex": "#FF4040",
+    "EnableOutline": true,
+    "Style": "Circle"
+  }
+]
