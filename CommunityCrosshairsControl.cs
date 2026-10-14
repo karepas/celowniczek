@@ -37,7 +37,19 @@ namespace Celowniczek
             crosshairList.Size = new Size(365, 300);
             crosshairList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             crosshairList.IntegralHeight = false;
+            crosshairList.SelectionMode = SelectionMode.One;
+            crosshairList.Enabled = true;
+            crosshairList.TabStop = true;
             crosshairList.SelectedIndexChanged += (s, e) => UpdateSelectionDetails();
+            crosshairList.DoubleClick += (s, e) => ApplySelectedCrosshair();
+            crosshairList.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    ApplySelectedCrosshair();
+                    e.Handled = true;
+                }
+            };
 
             detailsLabel.Location = new Point(12, 365);
             detailsLabel.Size = new Size(365, 96);
@@ -186,8 +198,8 @@ namespace Celowniczek
             ConfigManager.SaveConfig(config);
 
             statusLabel.Text = config.Language == "pl"
-                ? $"Zastosowano: {selected.Title}"
-                : $"Applied: {selected.Title}";
+                ? $"Zastosowano: {selected.Title}. Ustawienia zostały zapisane."
+                : $"Applied: {selected.Title}. Settings have been saved.";
         }
 
         private void OpenShareForm()

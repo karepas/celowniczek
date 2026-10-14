@@ -7,7 +7,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 ### ✨ Features
 - **100% Click-Through:** The overlay is completely transparent to the mouse (`WS_EX_TRANSPARENT`), preventing focus loss in-game (no Alt+Tab issues while shooting).
 - **Position Profiles:** Use the horizontal and vertical sliders or click **Change position**, then save named profiles for different games.
-- **Community Crosshairs:** Browse shared crosshairs from `community/crosshairs.json`, apply them, or submit your current settings to a Discord webhook.
+- **Community Crosshairs:** Browse and apply shared crosshairs, or submit a named crosshair to GitHub for review. Approved submissions are added to the shared list automatically.
 - **Full Customization:**
   - Color adjustment (RGB/HEX palette)
   - Black outline to increase visibility
@@ -23,7 +23,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 3. Run the file and go through the simple installation process.
 4. When running the game, make sure your graphics mode is set to **Borderless / Fullscreen Windowed**.
 5. To align the overlay with a game's crosshair, adjust the horizontal and vertical sliders or click **Change position**, then save a named profile for that game.
-6. Community submissions require configuring `DiscordWebhookUrl` in `CommunityCrosshairService.cs` before building the app. Keep real webhook URLs private.
+6. To submit a crosshair, open the Community tab and choose **Share**. GitHub opens a prefilled issue; sign in and submit it. A repository maintainer reviews it and applies the `community-approved` label to publish it to the shared list.
 
 ### 🛠️ Requirements & Compilation
 If you want to compile the project yourself from sources:
@@ -46,7 +46,7 @@ Lekka, otwartoźródłowa i precyzyjna nakładka celownika (overlay) dla systemu
 
 Profile pozycji: Ustaw położenie suwakami poziomym i pionowym lub kliknij „Zmień miejsce”, a następnie zapisz profil pod własną nazwą dla danej gry.
 
-Społeczność celowników: Przeglądaj celowniki z `community/crosshairs.json`, stosuj je lub wysyłaj aktualne ustawienia przez Discord Webhook. Przed kompilacją ustaw `DiscordWebhookUrl` w `CommunityCrosshairService.cs`; nie publikuj prawdziwego adresu webhooka.
+Społeczność celowników: Przeglądaj i stosuj wspólne celowniki albo zgłoś nazwany celownik do sprawdzenia na GitHubie. Zatwierdzone wpisy są automatycznie dopisywane do wspólnej listy.
 
 Pełna personalizacja:
 

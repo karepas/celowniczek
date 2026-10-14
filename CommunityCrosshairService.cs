@@ -13,7 +13,8 @@ namespace Celowniczek
     public static class CommunityCrosshairService
     {
         public const string RawCrosshairsUrl = "https://raw.githubusercontent.com/karepas/celowniczek/main/community/crosshairs.json";
-        public const string DiscordWebhookUrl = "YOUR_DISCORD_WEBHOOK_URL";
+        public const string NewSubmissionIssueUrl = "https://github.com/karepas/celowniczek/issues/new";
+        public const string ApprovalLabel = "community-approved";
 
         private static readonly HttpClient HttpClient = CreateHttpClient();
         private static readonly JsonSerializerOptions JsonOptions = CreateJsonOptions();
@@ -39,32 +40,27 @@ namespace Celowniczek
                 .ToArray();
         }
 
-        public static async Task SubmitCrosshairAsync(CommunityCrosshair crosshair, CancellationToken cancellationToken = default)
+        public static Uri CreateSubmissionIssueUri(CommunityCrosshair crosshair)
         {
             if (crosshair == null || !crosshair.IsValid())
             {
                 throw new ArgumentException("The crosshair submission contains invalid values.", nameof(crosshair));
             }
 
-            if (!Uri.TryCreate(DiscordWebhookUrl, UriKind.Absolute, out Uri? webhookUri)
-                || !string.Equals(webhookUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
-                || !(string.Equals(webhookUri.Host, "discord.com", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(webhookUri.Host, "discordapp.com", StringComparison.OrdinalIgnoreCase))
-                || !webhookUri.AbsolutePath.StartsWith("/api/webhooks/", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("Discord webhook is not configured. Replace YOUR_DISCORD_WEBHOOK_URL in CommunityCrosshairService.cs with a Discord webhook URL before enabling submissions.");
-            }
-
             string crosshairJson = JsonSerializer.Serialize(crosshair, JsonOptions);
-            DiscordWebhookPayload payload = new DiscordWebhookPayload
+            string title = $"Crosshair submission: {crosshair.Title.Trim()}";
+            string body = string.Join("\n", new[]
             {
-                Content = $"New community crosshair submission:\n```json\n{crosshairJson}\n```"
-            };
-            string payloadJson = JsonSerializer.Serialize(payload);
-
-            using StringContent content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json");
-            using HttpResponseMessage response = await HttpClient.PostAsync(webhookUri, content, cancellationToken);
-            response.EnsureSuccessStatusCode();
+                "Community crosshair submission",
+                "",
+                "Please review this crosshair. A repository maintainer can add the `community-approved` label to publish it in the in-app list.",
+                "",
+                "```json",
+                crosshairJson,
+                "```"
+            });
+            string issueUrl = $"{NewSubmissionIssueUrl}?title={Uri.EscapeDataString(title)}&body={Uri.EscapeDataString(body)}";
+            return new Uri(issueUrl, UriKind.Absolute);
         }
 
         private static HttpClient CreateHttpClient()
@@ -87,11 +83,6 @@ namespace Celowniczek
             };
             options.Converters.Add(new JsonStringEnumConverter());
             return options;
-        }
-
-        private sealed class DiscordWebhookPayload
-        {
-            public string Content { get; set; } = "";
         }
     }
 }

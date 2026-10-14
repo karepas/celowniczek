@@ -1,6 +1,6 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Celowniczek
@@ -49,12 +49,17 @@ namespace Celowniczek
             sendButton.Location = new Point(178, 177);
             sendButton.Size = new Size(90, 30);
             sendButton.Text = polish ? "Wyślij" : "Send";
-            sendButton.Click += async (s, e) => await SendAsync();
+            sendButton.Click += (s, e) => SubmitToGitHub();
 
             cancelButton.Location = new Point(278, 177);
             cancelButton.Size = new Size(90, 30);
             cancelButton.Text = polish ? "Anuluj" : "Cancel";
             cancelButton.DialogResult = DialogResult.Cancel;
+            sendButton.Enabled = true;
+            authorTextBox.TabIndex = 0;
+            titleTextBox.TabIndex = 1;
+            sendButton.TabIndex = 2;
+            cancelButton.TabIndex = 3;
 
             Controls.Add(authorLabel);
             Controls.Add(authorTextBox);
@@ -67,7 +72,7 @@ namespace Celowniczek
             CancelButton = cancelButton;
         }
 
-        private async Task SendAsync()
+        private void SubmitToGitHub()
         {
             string author = authorTextBox.Text.Trim();
             string title = titleTextBox.Text.Trim();
@@ -92,36 +97,25 @@ namespace Celowniczek
                 Style = config.Style
             };
 
-            sendButton.Enabled = false;
-            statusLabel.Text = config.Language == "pl" ? "Wysyłanie zgłoszenia..." : "Sending submission...";
             try
             {
-                await CommunityCrosshairService.SubmitCrosshairAsync(submission);
-                statusLabel.Text = config.Language == "pl" ? "Wysłano zgłoszenie." : "Submission sent.";
-                DialogResult = DialogResult.OK;
-                Close();
+                Uri issueUri = CommunityCrosshairService.CreateSubmissionIssueUri(submission);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = issueUri.AbsoluteUri,
+                    UseShellExecute = true
+                });
+                statusLabel.ForeColor = Color.DarkGreen;
+                statusLabel.Text = config.Language == "pl"
+                    ? "Otworzyłem GitHub. Zaloguj się i kliknij „Submit new issue”. Po zatwierdzeniu zgłoszenie pojawi się na liście społeczności."
+                    : "GitHub is open. Sign in and click “Submit new issue”. The crosshair appears in the community list after approval.";
             }
             catch (Exception ex)
             {
-                if (ex is InvalidOperationException)
-                {
-                    statusLabel.Text = config.Language == "pl"
-                        ? "Webhook Discord nie jest skonfigurowany. Właściciel aplikacji musi ustawić DiscordWebhookUrl przed kompilacją."
-                        : "The Discord webhook is not configured. The app owner must set DiscordWebhookUrl before building.";
-                }
-                else
-                {
-                    statusLabel.Text = config.Language == "pl"
-                        ? $"Nie udało się wysłać: {ex.Message}"
-                        : $"Could not send: {ex.Message}";
-                }
-            }
-            finally
-            {
-                if (!IsDisposed)
-                {
-                    sendButton.Enabled = true;
-                }
+                statusLabel.ForeColor = Color.DarkRed;
+                statusLabel.Text = config.Language == "pl"
+                    ? $"Nie udało się otworzyć zgłoszenia GitHub: {ex.Message}"
+                    : $"Could not open the GitHub submission: {ex.Message}";
             }
         }
     }
