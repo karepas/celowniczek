@@ -7,6 +7,7 @@ A lightweight, open-source, and precise crosshair overlay for Windows, designed 
 ### ✨ Features
 - **100% Click-Through:** The overlay is completely transparent to the mouse (`WS_EX_TRANSPARENT`), preventing focus loss in-game (no Alt+Tab issues while shooting).
 - **Position Profiles:** Use the horizontal and vertical sliders or click **Change position**, then save named profiles for different games.
+- **Themes:** Choose Liquid Blue, Aurora, Graphite, or Arctic in Settings; the selection is saved between launches.
 - **Community Crosshairs:** Browse and apply shared crosshairs, or submit a named crosshair to GitHub for review. Approved submissions are added to the shared list automatically.
 - **Full Customization:**
   - Color adjustment (RGB/HEX palette)
@@ -45,6 +46,8 @@ Lekka, otwartoźródłowa i precyzyjna nakładka celownika (overlay) dla systemu
 100% Click-Through: Nakładka jest całkowicie przenikalna dla myszy (WS_EX_TRANSPARENT), co zapobiega gubieniu ostrości w grze (brak problemów z Alt+Tab podczas strzelania).
 
 Profile pozycji: Ustaw położenie suwakami poziomym i pionowym lub kliknij „Zmień miejsce”, a następnie zapisz profil pod własną nazwą dla danej gry.
+
+Motywy: W ustawieniach wybierz Liquid Blue, Aurora, Grafit lub Arktyczny. Wybór motywu zapisuje się między uruchomieniami.
 
 Społeczność celowników: Przeglądaj i stosuj wspólne celowniki albo zgłoś nazwany celownik do sprawdzenia na GitHubie. Zatwierdzone wpisy są automatycznie dopisywane do wspólnej listy.
 

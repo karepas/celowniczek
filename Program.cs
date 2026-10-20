@@ -71,11 +71,24 @@ namespace Celowniczek
             }
 
             RefreshTrayTexts();
-            itemSettings.Click += (s, e) => {
-                using (SettingsForm settings = new SettingsForm(config, crosshair))
+            itemSettings.Click += (s, e) =>
+            {
+                crosshair.Hide();
+                try
                 {
-                    settings.ShowDialog();
+                    using (SettingsForm settings = new SettingsForm(config, crosshair))
+                    {
+                        settings.ShowDialog();
+                    }
                 }
+                finally
+                {
+                    if (!crosshair.IsDisposed)
+                    {
+                        crosshair.Show();
+                    }
+                }
+
                 RefreshTrayTexts();
             };
 

@@ -14,6 +14,8 @@ namespace Celowniczek
         private readonly Panel settingsPanel;
         private readonly CommunityCrosshairsControl communityControl;
 
+        private Label lblTheme = null!;
+        private ComboBox cbTheme = null!;
         private ComboBox cbProfiles = null!;
         private TextBox txtProfileName = null!;
         private Button btnNewProfile = null!;
@@ -60,7 +62,7 @@ namespace Celowniczek
             settingsTabs = new TabControl { Dock = DockStyle.Fill };
             settingsTab = new TabPage();
             communityTab = new TabPage();
-            settingsPanel = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+            settingsPanel = new ThemePanel { Dock = DockStyle.Fill, AutoScroll = true };
             communityControl = new CommunityCrosshairsControl(config, crosshairForm);
             settingsTab.Controls.Add(settingsPanel);
             communityTab.Controls.Add(communityControl);
@@ -73,10 +75,12 @@ namespace Celowniczek
                     await communityControl.EnsureLoadedAsync();
                 }
             };
+            settingsTabs.DrawItem += SettingsTabs_DrawItem;
             this.Controls.Add(settingsTabs);
 
             UpdateTexts();
             InitializeComponents();
+            ApplyTheme();
         }
 
         private void UpdateTexts()
@@ -147,17 +151,29 @@ namespace Celowniczek
                 ConfigManager.SaveConfig(config);
             };
 
+            lblTheme = new Label { Location = new Point(20, 188), AutoSize = true };
+            cbTheme = new ComboBox { Location = new Point(20, 206), Size = new Size(350, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            cbTheme.SelectedIndexChanged += (s, e) =>
+            {
+                if (!refreshingTexts && cbTheme.SelectedIndex >= 0)
+                {
+                    config.Theme = UiThemeManager.AvailableThemes[cbTheme.SelectedIndex].Id;
+                    ApplyTheme();
+                    ConfigManager.SaveConfig(config);
+                }
+            };
+
             CrosshairPositionProfile selectedPosition = ConfigManager.GetSelectedPositionProfile(config);
-            lblPositionX = new Label { Location = new Point(20, 188), AutoSize = true };
-            tbPositionX = new TrackBar { Minimum = 0, Maximum = 1000, TickFrequency = 50, Value = (int)Math.Round(selectedPosition.X * 1000), Location = new Point(20, 205), Size = new Size(350, 35) };
+            lblPositionX = new Label { Location = new Point(20, 236), AutoSize = true };
+            tbPositionX = new TrackBar { AutoSize = false, Minimum = 0, Maximum = 1000, TickFrequency = 50, Value = (int)Math.Round(selectedPosition.X * 1000), Location = new Point(20, 253), Size = new Size(350, 44) };
             tbPositionX.ValueChanged += (s, e) => UpdatePositionFromSliders();
 
-            lblPositionY = new Label { Location = new Point(20, 241), AutoSize = true };
-            tbPositionY = new TrackBar { Minimum = 0, Maximum = 1000, TickFrequency = 50, Value = (int)Math.Round(selectedPosition.Y * 1000), Location = new Point(20, 258), Size = new Size(350, 35) };
+            lblPositionY = new Label { Location = new Point(20, 307), AutoSize = true };
+            tbPositionY = new TrackBar { AutoSize = false, Minimum = 0, Maximum = 1000, TickFrequency = 50, Value = (int)Math.Round(selectedPosition.Y * 1000), Location = new Point(20, 324), Size = new Size(350, 44) };
             tbPositionY.ValueChanged += (s, e) => UpdatePositionFromSliders();
 
-            lblStyle = new Label { Location = new Point(20, 299), AutoSize = true };
-            cbStyle = new ComboBox { Location = new Point(20, 316), Size = new Size(350, 25), DropDownStyle = ComboBoxStyle.DropDownList };
+            lblStyle = new Label { Location = new Point(20, 380), AutoSize = true };
+            cbStyle = new ComboBox { Location = new Point(20, 397), Size = new Size(350, 25), DropDownStyle = ComboBoxStyle.DropDownList };
             cbStyle.SelectedIndexChanged += (s, e) =>
             {
                 if (!refreshingTexts && cbStyle.SelectedIndex >= 0)
@@ -167,10 +183,10 @@ namespace Celowniczek
                 }
             };
 
-            btnColor = new Button { Location = new Point(20, 347), Size = new Size(350, 32) };
+            btnColor = new Button { Location = new Point(20, 428), Size = new Size(350, 32), Tag = "swatch" };
             btnColor.Click += BtnColor_Click;
 
-            cbOutline = new CheckBox { Checked = config.EnableOutline, Location = new Point(20, 385), AutoSize = true };
+            cbOutline = new CheckBox { Checked = config.EnableOutline, Location = new Point(20, 466), AutoSize = true };
             cbOutline.CheckedChanged += (s, e) =>
             {
                 config.EnableOutline = cbOutline.Checked;
@@ -178,11 +194,11 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            btnOutlineColor = new Button { Location = new Point(20, 409), Size = new Size(350, 26), Enabled = config.EnableOutline };
+            btnOutlineColor = new Button { Location = new Point(20, 490), Size = new Size(350, 26), Enabled = config.EnableOutline, Tag = "swatch" };
             btnOutlineColor.Click += BtnOutlineColor_Click;
 
-            lblSize = new Label { Location = new Point(20, 439), AutoSize = true };
-            tbSize = new TrackBar { Minimum = 2, Maximum = 50, Value = Math.Clamp(config.Size, 2, 50), Location = new Point(20, 456), Size = new Size(350, 38) };
+            lblSize = new Label { Location = new Point(20, 520), AutoSize = true };
+            tbSize = new TrackBar { AutoSize = false, Minimum = 2, Maximum = 50, Value = Math.Clamp(config.Size, 2, 50), Location = new Point(20, 537), Size = new Size(350, 44) };
             tbSize.ValueChanged += (s, e) =>
             {
                 config.Size = tbSize.Value;
@@ -190,8 +206,8 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            lblThickness = new Label { Location = new Point(20, 496), AutoSize = true };
-            tbThickness = new TrackBar { Minimum = 1, Maximum = 10, Value = Math.Clamp(config.Thickness, 1, 10), Location = new Point(20, 513), Size = new Size(350, 38) };
+            lblThickness = new Label { Location = new Point(20, 587), AutoSize = true };
+            tbThickness = new TrackBar { AutoSize = false, Minimum = 1, Maximum = 10, Value = Math.Clamp(config.Thickness, 1, 10), Location = new Point(20, 604), Size = new Size(350, 44) };
             tbThickness.ValueChanged += (s, e) =>
             {
                 config.Thickness = tbThickness.Value;
@@ -199,8 +215,8 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            lblGap = new Label { Location = new Point(20, 553), AutoSize = true };
-            tbGap = new TrackBar { Minimum = 0, Maximum = 30, Value = Math.Clamp(config.Gap, 0, 30), Location = new Point(20, 570), Size = new Size(350, 38) };
+            lblGap = new Label { Location = new Point(20, 654), AutoSize = true };
+            tbGap = new TrackBar { AutoSize = false, Minimum = 0, Maximum = 30, Value = Math.Clamp(config.Gap, 0, 30), Location = new Point(20, 671), Size = new Size(350, 44) };
             tbGap.ValueChanged += (s, e) =>
             {
                 config.Gap = tbGap.Value;
@@ -208,8 +224,8 @@ namespace Celowniczek
                 ApplySettings();
             };
 
-            lblDotRadius = new Label { Location = new Point(20, 610), AutoSize = true };
-            tbDotRadius = new TrackBar { Minimum = 0, Maximum = 10, Value = Math.Clamp(config.DotRadius, 0, 10), Location = new Point(20, 627), Size = new Size(350, 38) };
+            lblDotRadius = new Label { Location = new Point(20, 721), AutoSize = true };
+            tbDotRadius = new TrackBar { AutoSize = false, Minimum = 0, Maximum = 10, Value = Math.Clamp(config.DotRadius, 0, 10), Location = new Point(20, 738), Size = new Size(350, 44) };
             tbDotRadius.ValueChanged += (s, e) =>
             {
                 config.DotRadius = tbDotRadius.Value;
@@ -229,6 +245,8 @@ namespace Celowniczek
             settingsPanel.Controls.Add(btnDeleteProfile);
             settingsPanel.Controls.Add(lblLang);
             settingsPanel.Controls.Add(cbLanguage);
+            settingsPanel.Controls.Add(lblTheme);
+            settingsPanel.Controls.Add(cbTheme);
             settingsPanel.Controls.Add(lblPositionX);
             settingsPanel.Controls.Add(tbPositionX);
             settingsPanel.Controls.Add(lblPositionY);
@@ -254,6 +272,7 @@ namespace Celowniczek
             ConfigManager.NormalizeProfiles(config);
             lblProfiles.Text = polish ? "Profil pozycji:" : "Position profile:";
             lblProfileName.Text = polish ? "Nazwa profilu:" : "Profile name:";
+            lblTheme.Text = polish ? "Motyw:" : "Theme:";
             lblPositionX.Text = polish ? $"Poziomo: {tbPositionX.Value / 10}%" : $"Horizontal: {tbPositionX.Value / 10}%";
             lblPositionY.Text = polish ? $"Pionowo: {tbPositionY.Value / 10}%" : $"Vertical: {tbPositionY.Value / 10}%";
             btnNewProfile.Text = polish ? "Nowy" : "New";
@@ -283,6 +302,23 @@ namespace Celowniczek
                 string.Equals(profile.Name, config.SelectedPositionProfile, StringComparison.OrdinalIgnoreCase));
             cbProfiles.EndUpdate();
 
+            cbTheme.BeginUpdate();
+            cbTheme.Items.Clear();
+            foreach (UiThemePalette theme in UiThemeManager.AvailableThemes)
+            {
+                cbTheme.Items.Add(UiThemeManager.GetDisplayName(theme, polish));
+            }
+            cbTheme.SelectedIndex = 0;
+            for (int i = 0; i < UiThemeManager.AvailableThemes.Count; i++)
+            {
+                if (string.Equals(UiThemeManager.AvailableThemes[i].Id, config.Theme, StringComparison.OrdinalIgnoreCase))
+                {
+                    cbTheme.SelectedIndex = i;
+                    break;
+                }
+            }
+            cbTheme.EndUpdate();
+
             cbStyle.BeginUpdate();
             cbStyle.Items.Clear();
             cbStyle.Items.Add(polish ? "Krzyż" : "Cross");
@@ -310,6 +346,41 @@ namespace Celowniczek
             bool polish = config.Language == "pl";
             settingsTab.Text = polish ? "Ustawienia" : "Settings";
             communityTab.Text = polish ? "Społeczność" : "Community";
+        }
+
+        private void ApplyTheme()
+        {
+            UiThemePalette theme = UiThemeManager.GetTheme(config.Theme);
+            UiThemeManager.Apply(this, theme);
+            communityControl.ApplyTheme(theme);
+            settingsTabs.Invalidate();
+        }
+
+        private void SettingsTabs_DrawItem(object? sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0 || e.Index >= settingsTabs.TabPages.Count)
+            {
+                return;
+            }
+
+            UiThemePalette theme = UiThemeManager.GetTheme(config.Theme);
+            bool selected = e.Index == settingsTabs.SelectedIndex;
+            Color tabColor = selected ? theme.RaisedSurface : theme.Surface;
+            using SolidBrush background = new SolidBrush(tabColor);
+            e.Graphics.FillRectangle(background, e.Bounds);
+            TextRenderer.DrawText(
+                e.Graphics,
+                settingsTabs.TabPages[e.Index].Text,
+                Font,
+                e.Bounds,
+                selected ? theme.Text : theme.MutedText,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+
+            if (selected)
+            {
+                using Pen accent = new Pen(theme.Accent, 3);
+                e.Graphics.DrawLine(accent, e.Bounds.Left + 12, e.Bounds.Bottom - 2, e.Bounds.Right - 12, e.Bounds.Bottom - 2);
+            }
         }
 
         private void ChoosePosition()

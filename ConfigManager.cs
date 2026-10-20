@@ -24,6 +24,7 @@ namespace Celowniczek
         public int DotRadius { get; set; } = 2;
         public CrosshairStyle Style { get; set; } = CrosshairStyle.Cross;
         public string Language { get; set; } = "en"; // Domyślnie angielski
+        public string Theme { get; set; } = UiThemeManager.DefaultThemeId;
         public string SelectedPositionProfile { get; set; } = "Default";
         public List<CrosshairPositionProfile> PositionProfiles { get; set; } = new()
         {

@@ -11,6 +11,7 @@ namespace Celowniczek
         private readonly ConfigData config;
         private readonly CrosshairForm crosshairForm;
         private readonly TableLayoutPanel layout = new TableLayoutPanel();
+        private readonly ThemePanel backgroundPanel = new ThemePanel();
         private readonly Label headingLabel = new Label();
         private readonly ListBox crosshairList = new ListBox();
         private readonly Label detailsLabel = new Label();
@@ -28,6 +29,7 @@ namespace Celowniczek
             Dock = DockStyle.Fill;
             Padding = new Padding(12);
 
+            backgroundPanel.Dock = DockStyle.Fill;
             layout.Dock = DockStyle.Fill;
             layout.ColumnCount = 1;
             layout.RowCount = 5;
@@ -64,6 +66,7 @@ namespace Celowniczek
             detailsLabel.Dock = DockStyle.Fill;
             detailsLabel.Margin = new Padding(0, 0, 0, 8);
             detailsLabel.BorderStyle = BorderStyle.FixedSingle;
+            detailsLabel.Tag = "surface";
 
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel
             {
@@ -75,6 +78,7 @@ namespace Celowniczek
             };
 
             refreshButton.Size = new Size(114, 34);
+            refreshButton.Tag = "secondary";
             refreshButton.Margin = new Padding(0, 0, 8, 0);
             refreshButton.Click += async (s, e) => await RefreshCrosshairsAsync();
 
@@ -83,6 +87,7 @@ namespace Celowniczek
             applyButton.Click += (s, e) => ApplySelectedCrosshair();
 
             shareButton.Size = new Size(114, 34);
+            shareButton.Tag = "primary";
             shareButton.Margin = new Padding(0);
             shareButton.Click += (s, e) => OpenShareForm();
 
@@ -99,7 +104,8 @@ namespace Celowniczek
             layout.Controls.Add(detailsLabel, 0, 2);
             layout.Controls.Add(buttonPanel, 0, 3);
             layout.Controls.Add(statusLabel, 0, 4);
-            Controls.Add(layout);
+            backgroundPanel.Controls.Add(layout);
+            Controls.Add(backgroundPanel);
 
             UpdateTexts();
         }
@@ -122,6 +128,12 @@ namespace Celowniczek
             shareButton.Text = polish ? "Udostępnij" : "Share";
             statusLabel.Text = polish ? "Lista nie została jeszcze pobrana." : "The list has not been loaded yet.";
             UpdateSelectionDetails();
+        }
+
+        public void ApplyTheme(UiThemePalette theme)
+        {
+            UiThemeManager.Apply(backgroundPanel, theme);
+            crosshairList.Invalidate();
         }
 
         private async Task RefreshCrosshairsAsync()
@@ -180,6 +192,12 @@ namespace Celowniczek
             detailsLabel.Text = config.Language == "pl"
                 ? $"Autor: {selected.Author}\r\nRozmiar: {selected.Size}   Grubość: {selected.Thickness}   Przerwa: {selected.Gap}\r\nKropka: {selected.DotRadius}   Kolor: {selected.ColorHex}   Styl: {GetLocalizedStyle(selected.Style)}"
                 : $"Author: {selected.Author}\r\nSize: {selected.Size}   Thickness: {selected.Thickness}   Gap: {selected.Gap}\r\nDot: {selected.DotRadius}   Color: {selected.ColorHex}   Style: {selected.Style}";
+        }
+
+        protected override void OnCreateControl()
+        {
+            base.OnCreateControl();
+            ApplyTheme(UiThemeManager.GetTheme(config.Theme));
         }
 
         private string GetLocalizedStyle(CrosshairStyle style)

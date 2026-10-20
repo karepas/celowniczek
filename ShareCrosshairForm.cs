@@ -48,11 +48,13 @@ namespace Celowniczek
 
             sendButton.Location = new Point(178, 177);
             sendButton.Size = new Size(90, 30);
+            sendButton.Tag = "primary";
             sendButton.Text = polish ? "Wyślij" : "Send";
             sendButton.Click += (s, e) => SubmitToGitHub();
 
             cancelButton.Location = new Point(278, 177);
             cancelButton.Size = new Size(90, 30);
+            cancelButton.Tag = "secondary";
             cancelButton.Text = polish ? "Anuluj" : "Cancel";
             cancelButton.DialogResult = DialogResult.Cancel;
             sendButton.Enabled = true;
@@ -70,6 +72,7 @@ namespace Celowniczek
             Controls.Add(cancelButton);
             AcceptButton = sendButton;
             CancelButton = cancelButton;
+            UiThemeManager.Apply(this, UiThemeManager.GetTheme(config.Theme));
         }
 
         private void SubmitToGitHub()
