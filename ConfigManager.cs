@@ -46,6 +46,7 @@ namespace Celowniczek
                     ConfigData? data = JsonSerializer.Deserialize<ConfigData>(json);
                     if (data != null)
                     {
+                        NormalizeColors(data);
                         NormalizeProfiles(data);
                         return data;
                     }
@@ -60,6 +61,7 @@ namespace Celowniczek
         {
             try
             {
+                NormalizeColors(data);
                 NormalizeProfiles(data);
                 if (!Directory.Exists(FolderPath))
                 {
@@ -74,6 +76,7 @@ namespace Celowniczek
 
         public static void ApplyToForm(ConfigData data, CrosshairForm form)
         {
+            NormalizeColors(data);
             CrosshairPositionProfile profile = GetSelectedPositionProfile(data);
             form.CrosshairColor = ColorTranslator.FromHtml(data.ColorHex);
             form.OutlineColor = ColorTranslator.FromHtml(data.OutlineColorHex);
@@ -120,6 +123,35 @@ namespace Celowniczek
                 string.Equals(profile.Name, data.SelectedPositionProfile, StringComparison.OrdinalIgnoreCase)))
             {
                 data.SelectedPositionProfile = data.PositionProfiles[0].Name;
+            }
+        }
+
+        private static void NormalizeColors(ConfigData data)
+        {
+            data.ColorHex = NormalizeColorHex(data.ColorHex, "#00FFFF");
+            data.OutlineColorHex = NormalizeColorHex(data.OutlineColorHex, "#000000");
+        }
+
+        private static string NormalizeColorHex(string? value, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return fallback;
+            }
+
+            try
+            {
+                Color color = ColorTranslator.FromHtml(value);
+                if (color.A != 255)
+                {
+                    return fallback;
+                }
+
+                return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+            }
+            catch (ArgumentException)
+            {
+                return fallback;
             }
         }
     }
