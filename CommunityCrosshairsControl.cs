@@ -10,6 +10,8 @@ namespace Celowniczek
     {
         private readonly ConfigData config;
         private readonly CrosshairForm crosshairForm;
+        private readonly TableLayoutPanel layout = new TableLayoutPanel();
+        private readonly Label headingLabel = new Label();
         private readonly ListBox crosshairList = new ListBox();
         private readonly Label detailsLabel = new Label();
         private readonly Label statusLabel = new Label();
@@ -26,16 +28,24 @@ namespace Celowniczek
             Dock = DockStyle.Fill;
             Padding = new Padding(12);
 
-            Label heading = new Label
-            {
-                Location = new Point(12, 12),
-                Size = new Size(365, 34),
-                Font = new Font("Segoe UI", 14, FontStyle.Bold)
-            };
+            layout.Dock = DockStyle.Fill;
+            layout.ColumnCount = 1;
+            layout.RowCount = 5;
+            layout.Margin = new Padding(0);
+            layout.Padding = new Padding(0);
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
 
-            crosshairList.Location = new Point(12, 54);
-            crosshairList.Size = new Size(365, 300);
-            crosshairList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            headingLabel.Dock = DockStyle.Fill;
+            headingLabel.Margin = new Padding(0, 0, 0, 8);
+            headingLabel.Font = new Font("Segoe UI", 14, FontStyle.Bold);
+
+            crosshairList.Dock = DockStyle.Fill;
+            crosshairList.Margin = new Padding(0, 0, 0, 8);
             crosshairList.IntegralHeight = false;
             crosshairList.SelectionMode = SelectionMode.One;
             crosshairList.Enabled = true;
@@ -51,34 +61,45 @@ namespace Celowniczek
                 }
             };
 
-            detailsLabel.Location = new Point(12, 365);
-            detailsLabel.Size = new Size(365, 96);
-            detailsLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            detailsLabel.Dock = DockStyle.Fill;
+            detailsLabel.Margin = new Padding(0, 0, 0, 8);
             detailsLabel.BorderStyle = BorderStyle.FixedSingle;
 
-            refreshButton.Location = new Point(12, 472);
+            FlowLayoutPanel buttonPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Margin = new Padding(0),
+                Padding = new Padding(0)
+            };
+
             refreshButton.Size = new Size(114, 34);
+            refreshButton.Margin = new Padding(0, 0, 8, 0);
             refreshButton.Click += async (s, e) => await RefreshCrosshairsAsync();
 
-            applyButton.Location = new Point(137, 472);
             applyButton.Size = new Size(114, 34);
+            applyButton.Margin = new Padding(0, 0, 8, 0);
             applyButton.Click += (s, e) => ApplySelectedCrosshair();
 
-            shareButton.Location = new Point(263, 472);
             shareButton.Size = new Size(114, 34);
+            shareButton.Margin = new Padding(0);
             shareButton.Click += (s, e) => OpenShareForm();
 
-            statusLabel.Location = new Point(12, 520);
-            statusLabel.Size = new Size(365, 52);
-            statusLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            buttonPanel.Controls.Add(refreshButton);
+            buttonPanel.Controls.Add(applyButton);
+            buttonPanel.Controls.Add(shareButton);
 
-            Controls.Add(heading);
-            Controls.Add(crosshairList);
-            Controls.Add(detailsLabel);
-            Controls.Add(refreshButton);
-            Controls.Add(applyButton);
-            Controls.Add(shareButton);
-            Controls.Add(statusLabel);
+            statusLabel.Dock = DockStyle.Fill;
+            statusLabel.Margin = new Padding(0);
+            statusLabel.AutoEllipsis = true;
+
+            layout.Controls.Add(headingLabel, 0, 0);
+            layout.Controls.Add(crosshairList, 0, 1);
+            layout.Controls.Add(detailsLabel, 0, 2);
+            layout.Controls.Add(buttonPanel, 0, 3);
+            layout.Controls.Add(statusLabel, 0, 4);
+            Controls.Add(layout);
 
             UpdateTexts();
         }
@@ -94,10 +115,7 @@ namespace Celowniczek
         public void UpdateTexts()
         {
             bool polish = config.Language == "pl";
-            if (Controls.Count > 0)
-            {
-                Controls[0].Text = polish ? "Celowniki społeczności" : "Community crosshairs";
-            }
+            headingLabel.Text = polish ? "Celowniki społeczności" : "Community crosshairs";
 
             refreshButton.Text = polish ? "Odśwież" : "Refresh";
             applyButton.Text = polish ? "Zastosuj" : "Apply";
